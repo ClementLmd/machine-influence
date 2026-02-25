@@ -8,7 +8,8 @@
     "start": "concurrently \"pnpm --filter front start\" \"pnpm --filter back start:prod\"",
     "test": "pnpm -r run test",
     "lint": "pnpm -r run lint",
-    "typecheck": "pnpm -r run typecheck"
+    "typecheck": "pnpm -r run typecheck",
+    "fullcheck": "pnpm run lint && pnpm run typecheck"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

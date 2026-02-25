@@ -23,3 +23,4 @@ pnpm dev
 | Test      | `pnpm test`      |
 | Lint      | `pnpm lint`      |
 | Typecheck | `pnpm typecheck` |
+| Fullcheck | `pnpm fullcheck` |
