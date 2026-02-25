@@ -1,5 +1,13 @@
 {
   "name": "@machine-influence/shared",
   "version": "1.0.0",
-  "description": "Shared types and utilities for Machine d'Influence"
+  "description": "Shared types and utilities for Machine d'Influence",
+  "main": "index.ts",
+  "types": "index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./enums": "./enums/index.ts",
+    "./types": "./types/index.ts",
+    "./dto": "./dto/index.ts"
+  }
 }
