@@ -9,9 +9,11 @@
     "test": "pnpm -r run test",
     "lint": "pnpm -r run lint",
     "typecheck": "pnpm -r run typecheck",
-    "fullcheck": "pnpm run lint && pnpm run typecheck"
+    "fullcheck": "pnpm run lint && pnpm run typecheck",
+    "prepare": "husky"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "husky": "^9.0.11"
   }
 }
