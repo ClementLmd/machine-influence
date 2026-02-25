@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 type AvatarSize = 'sm' | 'md' | 'lg';
 
 type AvatarProps = {
@@ -14,6 +16,12 @@ const sizeClasses: Record<AvatarSize, string> = {
   lg: 'h-16 w-16 text-xl',
 };
 
+const sizePixels: Record<AvatarSize, number> = {
+  sm: 32,
+  md: 40,
+  lg: 64,
+};
+
 function getInitials(name?: string): string {
   if (!name?.trim()) return '?';
   const parts = name.trim().split(/\s+/);
@@ -27,11 +35,15 @@ export function Avatar({ src, alt, name, size = 'md', className = '' }: AvatarPr
   const sizeClass = sizeClasses[size];
 
   if (src) {
+    const px = sizePixels[size];
     return (
-      <img
+      <Image
         src={src}
         alt={alt ?? name ?? 'Avatar'}
+        width={px}
+        height={px}
         className={`inline-block rounded-full object-cover ${sizeClass} ${className}`}
+        unoptimized
       />
     );
   }
