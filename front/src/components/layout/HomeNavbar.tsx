@@ -56,12 +56,12 @@ export function HomeNavbar() {
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
-          <a
-            href="#how-it-works"
+          <Link
+            href="/#how-it-works"
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             Comment ça marche
-          </a>
+          </Link>
           <Link
             href="/annonces"
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -122,13 +122,13 @@ export function HomeNavbar() {
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-border bg-background px-6 py-4">
           <div className="flex flex-col gap-4">
-            <a
-              href="#how-it-works"
+            <Link
+              href="/#how-it-works"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               Comment ça marche
-            </a>
+            </Link>
             <Link
               href="/annonces"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
