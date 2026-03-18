@@ -1,0 +1,7 @@
+{
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm --filter front build",
+  "outputDirectory": "front/.next",
+  "framework": "nextjs"
+}
+

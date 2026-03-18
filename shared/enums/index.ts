@@ -1,16 +1,5 @@
-export enum UserRole {
-  RECRUITER = 'RECRUITER',
-  INDEPENDENT = 'INDEPENDENT',
-}
+export type UserRole = 'RECRUITER' | 'INDEPENDENT';
 
-export enum AnnonceStatus {
-  ACTIVE = 'ACTIVE',
-  CLOSED = 'CLOSED',
-  DRAFT = 'DRAFT',
-}
+export type AnnonceStatus = 'ACTIVE' | 'CLOSED' | 'DRAFT';
 
-export enum CandidatureStatus {
-  PENDING = 'PENDING',
-  ACCEPTED = 'ACCEPTED',
-  REJECTED = 'REJECTED',
-}
+export type CandidatureStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED';
