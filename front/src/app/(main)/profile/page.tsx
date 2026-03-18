@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
@@ -40,6 +40,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
 
   const fullName =
     `${profile?.firstName ?? ""} ${profile?.lastName ?? ""}`.trim();
@@ -287,11 +288,13 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    <label className="inline-flex cursor-pointer items-center gap-2">
+                    <div className="inline-flex items-center gap-2">
                       <input
+                        ref={avatarInputRef}
                         type="file"
+                        id="avatar-upload"
                         accept="image/*"
-                        className="hidden"
+                        className="sr-only"
                         disabled={avatarUploading}
                         onChange={(e) => {
                           const file = e.target.files?.[0];
@@ -303,10 +306,11 @@ export default function ProfilePage() {
                         type="button"
                         variant="secondary"
                         isLoading={avatarUploading}
+                        onClick={() => avatarInputRef.current?.click()}
                       >
                         Changer
                       </Button>
-                    </label>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
