@@ -17,10 +17,15 @@ import { UserRole } from '@prisma/client';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
   IsArray,
+  IsEmail,
   IsEnum,
   IsNumber,
+  IsPositive,
   IsOptional,
   IsString,
+  Length,
+  Max,
+  MaxLength,
 } from 'class-validator';
 import type { Request } from 'express';
 import { readFile } from 'node:fs/promises';
@@ -41,15 +46,23 @@ class CreateUserDto {
 
 class UpdateMeDto {
   @IsOptional()
+  @IsEmail()
+  @MaxLength(255)
+  email?: string;
+
+  @IsOptional()
   @IsString()
+  @Length(1, 50)
   firstName?: string;
 
   @IsOptional()
   @IsString()
+  @Length(1, 50)
   lastName?: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(1000)
   description?: string;
 
   @IsOptional()
@@ -59,6 +72,8 @@ class UpdateMeDto {
 
   @IsOptional()
   @IsNumber()
+  @IsPositive()
+  @Max(5000)
   rate?: number;
 }
 
@@ -103,6 +118,9 @@ export class UsersController {
   ) {
     if (!req.user) throw new UnauthorizedException();
     if (!file) throw new BadRequestException('Missing file');
+    if (file.mimetype && !file.mimetype.startsWith('image/')) {
+      throw new BadRequestException('Le fichier doit être une image');
+    }
     const { supabaseId } = req.user;
     const buffer: Buffer =
       file.buffer ?? (file.path ? await readFile(file.path) : Buffer.from([]));

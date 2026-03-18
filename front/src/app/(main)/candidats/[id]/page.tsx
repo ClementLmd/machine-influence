@@ -60,9 +60,21 @@ export default async function CandidatePublicPage({
           <h1 className="truncate text-2xl font-semibold text-neutral-900 dark:text-white">
             {name}
           </h1>
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-            {candidate.rate ? `${candidate.rate} €/jour` : 'Tarif non renseigné'}
-          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+              {candidate.rate ? `${candidate.rate} €/jour` : 'Tarif non renseigné'}
+            </p>
+            <span
+              className={[
+                'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
+                candidate.isProfileComplete
+                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                  : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+              ].join(' ')}
+            >
+              {candidate.isProfileComplete ? 'Profil complet' : 'Profil incomplet'}
+            </span>
+          </div>
         </div>
       </div>
 

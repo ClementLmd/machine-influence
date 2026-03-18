@@ -55,6 +55,7 @@ export class UsersService {
   async updateMe(
     supabaseId: string,
     data: {
+      email?: string | null;
       firstName?: string | null;
       lastName?: string | null;
       description?: string | null;
@@ -70,6 +71,7 @@ export class UsersService {
     }
 
     const next = {
+      email: data.email ?? current.email,
       firstName: data.firstName ?? current.firstName,
       lastName: data.lastName ?? current.lastName,
       description: data.description ?? current.description,

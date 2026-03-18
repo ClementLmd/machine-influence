@@ -1,17 +1,18 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from "react";
 
-import { Avatar } from '@/components/ui/Avatar';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
-import { getApiBaseUrl } from '@/lib/api';
-import { createClient } from '@/lib/supabase/client';
+import { Avatar } from "@/components/ui/Avatar";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { getApiBaseUrl } from "@/lib/api";
+import { createClient } from "@/lib/supabase/client";
+import { HelpCircle } from "lucide-react";
 
 type UserProfile = {
   id: string;
-  role: 'RECRUITER' | 'INDEPENDENT';
+  role: "RECRUITER" | "INDEPENDENT";
   email: string;
   firstName: string | null;
   lastName: string | null;
@@ -22,7 +23,7 @@ type UserProfile = {
   isProfileComplete: boolean;
 };
 
-type Tab = 'candidat' | 'mes-annonces';
+type Tab = "candidat" | "mes-annonces";
 
 async function getAccessToken() {
   const supabase = createClient();
@@ -32,15 +33,16 @@ async function getAccessToken() {
 
 export default function ProfilePage() {
   const apiBaseUrl = useMemo(() => getApiBaseUrl(), []);
-  const [tab, setTab] = useState<Tab>('candidat');
+  const [tab, setTab] = useState<Tab>("candidat");
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [skillsText, setSkillsText] = useState('');
+  const [skillsText, setSkillsText] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fullName = `${profile?.firstName ?? ''} ${profile?.lastName ?? ''}`.trim();
+  const fullName =
+    `${profile?.firstName ?? ""} ${profile?.lastName ?? ""}`.trim();
 
   useEffect(() => {
     let cancelled = false;
@@ -50,23 +52,23 @@ export default function ProfilePage() {
       setError(null);
       try {
         if (!apiBaseUrl) {
-          throw new Error('NEXT_PUBLIC_API_URL manquant');
+          throw new Error("NEXT_PUBLIC_API_URL manquant");
         }
         const token = await getAccessToken();
-        if (!token) throw new Error('Vous devez être connecté.');
+        if (!token) throw new Error("Vous devez être connecté.");
 
         const res = await fetch(`${apiBaseUrl}/users/me`, {
           headers: { Authorization: `Bearer ${token}` },
-          cache: 'no-store',
+          cache: "no-store",
         });
-        if (!res.ok) throw new Error('Impossible de charger le profil');
+        if (!res.ok) throw new Error("Impossible de charger le profil");
         const data = (await res.json()) as UserProfile;
         if (cancelled) return;
         setProfile(data);
-        setSkillsText((data.skills ?? []).join(', '));
+        setSkillsText((data.skills ?? []).join(", "));
       } catch (e) {
         if (cancelled) return;
-        setError(e instanceof Error ? e.message : 'Une erreur est survenue');
+        setError(e instanceof Error ? e.message : "Une erreur est survenue");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -84,23 +86,24 @@ export default function ProfilePage() {
     setError(null);
     try {
       if (!apiBaseUrl) {
-        throw new Error('NEXT_PUBLIC_API_URL manquant');
+        throw new Error("NEXT_PUBLIC_API_URL manquant");
       }
       const token = await getAccessToken();
-      if (!token) throw new Error('Vous devez être connecté.');
+      if (!token) throw new Error("Vous devez être connecté.");
 
       const skills = skillsText
-        .split(',')
+        .split(",")
         .map((s) => s.trim())
         .filter(Boolean);
 
       const res = await fetch(`${apiBaseUrl}/users/me`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          email: profile.email,
           firstName: profile.firstName,
           lastName: profile.lastName,
           description: profile.description,
@@ -112,9 +115,9 @@ export default function ProfilePage() {
       if (!res.ok) throw new Error("Impossible d'enregistrer");
       const next = (await res.json()) as UserProfile;
       setProfile(next);
-      setSkillsText((next.skills ?? []).join(', '));
+      setSkillsText((next.skills ?? []).join(", "));
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Une erreur est survenue');
+      setError(e instanceof Error ? e.message : "Une erreur est survenue");
     } finally {
       setSaving(false);
     }
@@ -126,16 +129,16 @@ export default function ProfilePage() {
     setError(null);
     try {
       if (!apiBaseUrl) {
-        throw new Error('NEXT_PUBLIC_API_URL manquant');
+        throw new Error("NEXT_PUBLIC_API_URL manquant");
       }
       const token = await getAccessToken();
-      if (!token) throw new Error('Vous devez être connecté.');
+      if (!token) throw new Error("Vous devez être connecté.");
 
       const form = new FormData();
-      form.append('file', file);
+      form.append("file", file);
 
       const res = await fetch(`${apiBaseUrl}/users/me/avatar`, {
-        method: 'POST',
+        method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -145,7 +148,7 @@ export default function ProfilePage() {
       const next = (await res.json()) as UserProfile;
       setProfile(next);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Une erreur est survenue');
+      setError(e instanceof Error ? e.message : "Une erreur est survenue");
     } finally {
       setAvatarUploading(false);
     }
@@ -165,14 +168,27 @@ export default function ProfilePage() {
 
         {profile && (
           <div className="flex items-center gap-3">
-            <Avatar src={profile.profilePicture} name={fullName || profile.email} size="lg" />
-            <div className="text-right">
+            <Avatar
+              src={profile.profilePicture}
+              name={fullName || profile.email}
+              size="lg"
+            />
+            <div className="text-right space-y-1">
               <p className="text-sm font-medium text-neutral-900 dark:text-white">
-                {fullName || '—'}
+                {fullName || "—"}
               </p>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                {profile.isProfileComplete ? 'Profil complet' : 'Profil incomplet'}
-              </p>
+              <span
+                className={[
+                  "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
+                  profile.isProfileComplete
+                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+                    : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
+                ].join(" ")}
+              >
+                {profile.isProfileComplete
+                  ? "Profil complet"
+                  : "Profil incomplet"}
+              </span>
             </div>
           </div>
         )}
@@ -181,25 +197,25 @@ export default function ProfilePage() {
       <div className="mt-6 flex gap-2 rounded-xl border border-neutral-200 bg-white p-1 dark:border-neutral-800 dark:bg-neutral-950">
         <button
           type="button"
-          onClick={() => setTab('candidat')}
+          onClick={() => setTab("candidat")}
           className={[
-            'flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-            tab === 'candidat'
-              ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900'
-              : 'text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-900/40',
-          ].join(' ')}
+            "flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+            tab === "candidat"
+              ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+              : "text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-900/40",
+          ].join(" ")}
         >
           Candidat
         </button>
         <button
           type="button"
-          onClick={() => setTab('mes-annonces')}
+          onClick={() => setTab("mes-annonces")}
           className={[
-            'flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-            tab === 'mes-annonces'
-              ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900'
-              : 'text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-900/40',
-          ].join(' ')}
+            "flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+            tab === "mes-annonces"
+              ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+              : "text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-900/40",
+          ].join(" ")}
         >
           Mes annonces
         </button>
@@ -215,11 +231,13 @@ export default function ProfilePage() {
         <div className="mt-6">
           <Card>
             <CardHeader>
-              <p className="text-sm text-neutral-500 dark:text-neutral-400">Chargement…</p>
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                Chargement…
+              </p>
             </CardHeader>
           </Card>
         </div>
-      ) : tab === 'mes-annonces' ? (
+      ) : tab === "mes-annonces" ? (
         <div className="mt-6">
           <Card>
             <CardHeader>
@@ -278,10 +296,14 @@ export default function ProfilePage() {
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) void onAvatarSelected(file);
-                          e.currentTarget.value = '';
+                          e.currentTarget.value = "";
                         }}
                       />
-                      <Button type="button" variant="secondary" isLoading={avatarUploading}>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        isLoading={avatarUploading}
+                      >
                         Changer
                       </Button>
                     </label>
@@ -290,16 +312,55 @@ export default function ProfilePage() {
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <Input
                       label="Prénom"
-                      value={profile.firstName ?? ''}
+                      value={profile.firstName ?? ""}
                       onChange={(e) =>
-                        setProfile((p) => (p ? { ...p, firstName: e.target.value } : p))
+                        setProfile((p) =>
+                          p ? { ...p, firstName: e.target.value } : p,
+                        )
                       }
                     />
                     <Input
                       label="Nom"
-                      value={profile.lastName ?? ''}
+                      value={profile.lastName ?? ""}
                       onChange={(e) =>
-                        setProfile((p) => (p ? { ...p, lastName: e.target.value } : p))
+                        setProfile((p) =>
+                          p ? { ...p, lastName: e.target.value } : p,
+                        )
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <div className="mb-0.5 flex items-center gap-2">
+                      <label
+                        htmlFor="contact-email"
+                        className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+                      >
+                        Email de contact
+                      </label>
+
+                      <div className="relative inline-flex group">
+                        <HelpCircle className="size-4 text-neutral-400 dark:text-neutral-500" />
+                        <div
+                          className={[
+                            "pointer-events-none absolute right-0 top-full z-10 mt-2 w-64 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-700 shadow-sm",
+                            "dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-200",
+                            "opacity-0 scale-95 transform transition-all duration-150 group-hover:opacity-100 group-hover:scale-100",
+                          ].join(" ")}
+                        >
+                          L&apos;email de connexion reste inchangé.
+                        </div>
+                      </div>
+                    </div>
+
+                    <Input
+                      id="contact-email"
+                      type="email"
+                      value={profile.email}
+                      onChange={(e) =>
+                        setProfile((p) =>
+                          p ? { ...p, email: e.target.value } : p,
+                        )
                       }
                     />
                   </div>
@@ -311,9 +372,11 @@ export default function ProfilePage() {
                     <textarea
                       className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:focus:border-neutral-500"
                       rows={5}
-                      value={profile.description ?? ''}
+                      value={profile.description ?? ""}
                       onChange={(e) =>
-                        setProfile((p) => (p ? { ...p, description: e.target.value } : p))
+                        setProfile((p) =>
+                          p ? { ...p, description: e.target.value } : p,
+                        )
                       }
                     />
                   </div>
@@ -328,14 +391,19 @@ export default function ProfilePage() {
                   <Input
                     label="Tarif (€/jour)"
                     type="number"
-                    value={profile.rate ?? ''}
+                    min={1}
+                    value={profile.rate ?? ""}
                     onChange={(e) =>
                       setProfile((p) =>
                         p
-                          ? {
-                              ...p,
-                              rate: e.target.value === '' ? null : Number(e.target.value),
-                            }
+                          ? (() => {
+                              const raw = e.target.value;
+                              if (raw === "") return { ...p, rate: null };
+                              const n = Number(raw);
+                              if (!Number.isFinite(n)) return p;
+                              const clamped = n <= 0 ? 1 : n;
+                              return { ...p, rate: clamped };
+                            })()
                           : p,
                       )
                     }
@@ -356,4 +424,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
