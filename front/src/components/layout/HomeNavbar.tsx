@@ -1,14 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { Clapperboard, Menu, X } from "lucide-react";
+import { Clapperboard, LogOut, Menu, X } from "lucide-react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
 export function HomeNavbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
   const pathname = usePathname();
+  const router = useRouter();
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push('/');
+    router.refresh();
+  };
 
   const handleTitleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (pathname === "/") {
@@ -16,6 +36,10 @@ export function HomeNavbar() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
+
+  const displayName = user?.user_metadata?.firstName
+    ?? user?.email?.split('@')[0]
+    ?? 'Mon compte';
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
@@ -53,16 +77,28 @@ export function HomeNavbar() {
         </div>
 
         <div className="hidden md:flex items-center gap-3">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/login">Se connecter</Link>
-          </Button>
-          <Button
-            size="sm"
-            className="bg-accent text-accent-foreground hover:bg-accent/90"
-            asChild
-          >
-            <Link href="/register">S&apos;inscrire</Link>
-          </Button>
+          {user ? (
+            <>
+              <span className="text-sm text-muted-foreground">{displayName}</span>
+              <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                <LogOut className="size-4" />
+                Se déconnecter
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/login">Se connecter</Link>
+              </Button>
+              <Button
+                size="sm"
+                className="bg-accent text-accent-foreground hover:bg-accent/90"
+                asChild
+              >
+                <Link href="/register">S&apos;inscrire</Link>
+              </Button>
+            </>
+          )}
         </div>
 
         <button
@@ -103,16 +139,28 @@ export function HomeNavbar() {
               Talents
             </a>
             <div className="flex flex-col gap-2 pt-2 border-t border-border">
-              <Button variant="ghost" size="sm" className="justify-start" asChild>
-                <Link href="/login">Se connecter</Link>
-              </Button>
-              <Button
-                size="sm"
-                className="bg-accent text-accent-foreground hover:bg-accent/90"
-                asChild
-              >
-                <Link href="/register">S&apos;inscrire</Link>
-              </Button>
+              {user ? (
+                <>
+                  <span className="text-sm text-muted-foreground px-2">{displayName}</span>
+                  <Button variant="ghost" size="sm" className="justify-start" onClick={handleSignOut}>
+                    <LogOut className="size-4" />
+                    Se déconnecter
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="ghost" size="sm" className="justify-start" asChild>
+                    <Link href="/login">Se connecter</Link>
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="bg-accent text-accent-foreground hover:bg-accent/90"
+                    asChild
+                  >
+                    <Link href="/register">S&apos;inscrire</Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
