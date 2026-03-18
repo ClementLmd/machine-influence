@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { getApiBaseUrl } from "@/lib/api";
 import { createClient } from "@/lib/supabase/client";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, X } from "lucide-react";
 
 type UserProfile = {
   id: string;
@@ -35,7 +35,8 @@ export default function ProfilePage() {
   const apiBaseUrl = useMemo(() => getApiBaseUrl(), []);
   const [tab, setTab] = useState<Tab>("candidat");
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [skillsText, setSkillsText] = useState("");
+  const [skills, setSkills] = useState<string[]>([]);
+  const [skillInput, setSkillInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -66,7 +67,7 @@ export default function ProfilePage() {
         const data = (await res.json()) as UserProfile;
         if (cancelled) return;
         setProfile(data);
-        setSkillsText((data.skills ?? []).join(", "));
+        setSkills(data.skills ?? []);
       } catch (e) {
         if (cancelled) return;
         setError(e instanceof Error ? e.message : "Une erreur est survenue");
@@ -92,11 +93,6 @@ export default function ProfilePage() {
       const token = await getAccessToken();
       if (!token) throw new Error("Vous devez être connecté.");
 
-      const skills = skillsText
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean);
-
       const res = await fetch(`${apiBaseUrl}/users/me`, {
         method: "PATCH",
         headers: {
@@ -116,12 +112,38 @@ export default function ProfilePage() {
       if (!res.ok) throw new Error("Impossible d'enregistrer");
       const next = (await res.json()) as UserProfile;
       setProfile(next);
-      setSkillsText((next.skills ?? []).join(", "));
+      setSkills(next.skills ?? []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Une erreur est survenue");
     } finally {
       setSaving(false);
     }
+  };
+
+  const normalizeSkill = (value: string) =>
+    value.trim().replace(/\s+/g, " ");
+
+  const addSkill = () => {
+    const next = normalizeSkill(skillInput);
+    if (!next) return;
+
+    if (next.length > 30) {
+      setError("Chaque compétence doit faire max 30 caractères");
+      return;
+    }
+
+    setSkills((prev) => {
+      const exists = prev.some((s) => s.toLowerCase() === next.toLowerCase());
+      if (exists) return prev;
+      return [...prev, next];
+    });
+
+    setSkillInput("");
+    setError(null);
+  };
+
+  const removeSkill = (skillToRemove: string) => {
+    setSkills((prev) => prev.filter((s) => s !== skillToRemove));
   };
 
   const onAvatarSelected = async (file: File) => {
@@ -385,12 +407,53 @@ export default function ProfilePage() {
                     />
                   </div>
 
-                  <Input
-                    label="Compétences (séparées par des virgules)"
-                    value={skillsText}
-                    onChange={(e) => setSkillsText(e.target.value)}
-                    placeholder="Montage, Étalo, Prise de son…"
-                  />
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                      Compétences
+                    </label>
+
+                    <div className="flex flex-wrap gap-2">
+                      {skills.length ? (
+                        skills.map((skill) => (
+                          <span
+                            key={skill}
+                            className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300"
+                          >
+                            <span>{skill}</span>
+                            <button
+                              type="button"
+                              aria-label={`Retirer ${skill}`}
+                              className="inline-flex rounded-full p-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                              onClick={() => removeSkill(skill)}
+                            >
+                              <X className="size-3" />
+                            </button>
+                          </span>
+                        ))
+                      ) : (
+                        <p className="text-sm text-neutral-600 dark:text-neutral-300">
+                          Aucune compétence pour le moment.
+                        </p>
+                      )}
+                    </div>
+
+                    <Input
+                      id="skill-input"
+                      placeholder="Tapez une compétence puis Entrée"
+                      value={skillInput}
+                      onChange={(e) => setSkillInput(e.target.value)}
+                      maxLength={30}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addSkill();
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                      Max 30 caractères par compétence.
+                    </p>
+                  </div>
 
                   <Input
                     label="Tarif (€/jour)"

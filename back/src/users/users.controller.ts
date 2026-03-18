@@ -68,6 +68,7 @@ class UpdateMeDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
+  @Length(1, 30, { each: true })
   skills?: string[];
 
   @IsOptional()
