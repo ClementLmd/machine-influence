@@ -1,5 +1,5 @@
-export * from './user';
-export * from './annonce';
-export * from './candidature';
-export * from './conversation';
-export * from './message';
+export type * from './user';
+export type * from './annonce';
+export type * from './candidature';
+export type * from './conversation';
+export type * from './message';
