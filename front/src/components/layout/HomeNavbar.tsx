@@ -79,7 +79,12 @@ export function HomeNavbar() {
         <div className="hidden md:flex items-center gap-3">
           {user ? (
             <>
-              <span className="text-sm text-muted-foreground">{displayName}</span>
+              <Link
+                href="/profile"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {displayName}
+              </Link>
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
                 <LogOut className="size-4" />
                 Se déconnecter
@@ -141,7 +146,13 @@ export function HomeNavbar() {
             <div className="flex flex-col gap-2 pt-2 border-t border-border">
               {user ? (
                 <>
-                  <span className="text-sm text-muted-foreground px-2">{displayName}</span>
+                  <Link
+                    href="/profile"
+                    className="px-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {displayName}
+                  </Link>
                   <Button variant="ghost" size="sm" className="justify-start" onClick={handleSignOut}>
                     <LogOut className="size-4" />
                     Se déconnecter
