@@ -26,9 +26,9 @@ async function getCandidate(id: string): Promise<PublicUser | null> {
 export default async function CandidatePublicPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = params;
+  const { id } = await params;
   const candidate = await getCandidate(id);
 
   if (!candidate) {
