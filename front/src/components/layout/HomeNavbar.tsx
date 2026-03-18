@@ -68,12 +68,12 @@ export function HomeNavbar() {
           >
             Annonces
           </Link>
-          <a
-            href="#talents"
+          <Link
+            href="/candidats"
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             Talents
-          </a>
+          </Link>
         </div>
 
         <div className="hidden md:flex items-center gap-3">
@@ -136,13 +136,14 @@ export function HomeNavbar() {
             >
               Annonces
             </Link>
-            <a
-              href="#talents"
+            <Link
+              href="/candidats"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               Talents
-            </a>
+            </Link>
+          </div>
             <div className="flex flex-col gap-2 pt-2 border-t border-border">
               {user ? (
                 <>
@@ -174,7 +175,6 @@ export function HomeNavbar() {
               )}
             </div>
           </div>
-        </div>
       )}
     </header>
   );

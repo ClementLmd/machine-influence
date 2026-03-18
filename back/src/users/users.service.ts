@@ -52,6 +52,25 @@ export class UsersService {
     });
   }
 
+  async findFeatured(limit = 4) {
+    return this.prisma.user.findMany({
+      where: { isProfileComplete: true },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      select: {
+        id: true,
+        role: true,
+        firstName: true,
+        lastName: true,
+        profilePicture: true,
+        description: true,
+        skills: true,
+        rate: true,
+        isProfileComplete: true,
+      },
+    });
+  }
+
   async updateMe(
     supabaseId: string,
     data: {

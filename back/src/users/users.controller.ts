@@ -110,6 +110,11 @@ export class UsersController {
     return updated;
   }
 
+  @Get('featured')
+  async getFeatured() {
+    return this.usersService.findFeatured();
+  }
+
   @Post('me/avatar')
   @UseGuards(AuthGuard)
   @UseInterceptors(FileInterceptor('file'))
