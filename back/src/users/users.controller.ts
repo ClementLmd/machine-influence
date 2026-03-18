@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import { IsEnum } from 'class-validator';
 import type { Request } from 'express';
@@ -17,14 +25,18 @@ export class UsersController {
   @Post()
   @UseGuards(AuthGuard)
   async create(@Req() req: Request, @Body() body: CreateUserDto) {
-    const { supabaseId, email } = (req as any).user;
+    if (!req.user) throw new UnauthorizedException();
+    const { supabaseId } = req.user;
+    const email = req.user.email;
+    if (!email) throw new UnauthorizedException('User email is missing');
     return this.usersService.create({ supabaseId, email, role: body.role });
   }
 
   @Get('me')
   @UseGuards(AuthGuard)
   async getMe(@Req() req: Request) {
-    const { supabaseId } = (req as any).user;
+    if (!req.user) throw new UnauthorizedException();
+    const { supabaseId } = req.user;
     return this.usersService.findBySupabaseId(supabaseId);
   }
 }
