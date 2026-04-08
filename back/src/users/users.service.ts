@@ -52,6 +52,88 @@ export class UsersService {
     });
   }
 
+  async findAll(options: {
+    search?: string;
+    skills?: string[];
+    role?: UserRole;
+    minRate?: number;
+    maxRate?: number;
+    page?: number;
+    limit?: number;
+  }) {
+    const {
+      search,
+      skills,
+      role,
+      minRate,
+      maxRate,
+      page = 1,
+      limit = 12,
+    } = options;
+
+    const rateFilter: { gte?: number; lte?: number } = {};
+    if (minRate !== undefined) rateFilter.gte = minRate;
+    if (maxRate !== undefined) rateFilter.lte = maxRate;
+
+    const trimmedSearch = search?.trim();
+
+    const where = {
+      isProfileComplete: true,
+      ...(role && { role }),
+      // skills filter is case-sensitive — normalize at storage time for full insensitivity
+      ...(skills?.length && { skills: { hasSome: skills } }),
+      ...(Object.keys(rateFilter).length && { rate: rateFilter }),
+      ...(trimmedSearch && {
+        OR: [
+          {
+            firstName: {
+              contains: trimmedSearch,
+              mode: 'insensitive' as const,
+            },
+          },
+          {
+            lastName: {
+              contains: trimmedSearch,
+              mode: 'insensitive' as const,
+            },
+          },
+          {
+            description: {
+              contains: trimmedSearch,
+              mode: 'insensitive' as const,
+            },
+          },
+        ],
+      }),
+    };
+
+    const select = {
+      id: true,
+      role: true,
+      firstName: true,
+      lastName: true,
+      profilePicture: true,
+      description: true,
+      skills: true,
+      rate: true,
+      isProfileComplete: true,
+      createdAt: true,
+    };
+
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        select,
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return { users, total, page, limit };
+  }
+
   async findFeatured(limit = 4) {
     return this.prisma.user.findMany({
       where: { isProfileComplete: true },

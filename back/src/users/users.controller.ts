@@ -7,6 +7,7 @@ import {
   Post,
   Patch,
   Param,
+  Query,
   Req,
   UploadedFile,
   UnauthorizedException,
@@ -42,6 +43,37 @@ type UploadedAvatarFile = {
 class CreateUserDto {
   @IsEnum(UserRole)
   role: UserRole;
+}
+
+class GetAllQuery {
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  search?: string;
+
+  @IsOptional()
+  @IsString()
+  skills?: string;
+
+  @IsOptional()
+  @IsEnum(UserRole)
+  role?: UserRole;
+
+  @IsOptional()
+  @IsString()
+  minRate?: string;
+
+  @IsOptional()
+  @IsString()
+  maxRate?: string;
+
+  @IsOptional()
+  @IsString()
+  page?: string;
+
+  @IsOptional()
+  @IsString()
+  limit?: string;
 }
 
 class UpdateMeDto {
@@ -97,7 +129,9 @@ export class UsersController {
   async getMe(@Req() req: Request) {
     if (!req.user) throw new UnauthorizedException();
     const { supabaseId } = req.user;
-    return this.usersService.findBySupabaseId(supabaseId);
+    const user = await this.usersService.findBySupabaseId(supabaseId);
+    if (!user) throw new NotFoundException('User not found');
+    return user;
   }
 
   @Patch('me')
@@ -113,6 +147,29 @@ export class UsersController {
   @Get('featured')
   async getFeatured() {
     return this.usersService.findFeatured();
+  }
+
+  @Get()
+  async getAll(@Query() query: GetAllQuery) {
+    const skills = query.skills
+      ?.split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const page = query.page ? Math.max(1, parseInt(query.page, 10)) : 1;
+    const limit = query.limit
+      ? Math.min(50, Math.max(1, parseInt(query.limit, 10)))
+      : 12;
+    const minRate = query.minRate ? parseFloat(query.minRate) : undefined;
+    const maxRate = query.maxRate ? parseFloat(query.maxRate) : undefined;
+    return this.usersService.findAll({
+      search: query.search,
+      skills,
+      role: query.role,
+      minRate: minRate !== undefined && !isNaN(minRate) ? minRate : undefined,
+      maxRate: maxRate !== undefined && !isNaN(maxRate) ? maxRate : undefined,
+      page,
+      limit,
+    });
   }
 
   @Post('me/avatar')
