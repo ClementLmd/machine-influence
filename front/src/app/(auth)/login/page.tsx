@@ -33,7 +33,7 @@ export default function LoginPage() {
     setServerError(null);
     const supabase = createClient();
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: signInData, error } = await supabase.auth.signInWithPassword({
       email: values.email,
       password: values.password,
     });
@@ -45,6 +45,33 @@ export default function LoginPage() {
         setServerError(error.message);
       }
       return;
+    }
+
+    const session = signInData.session;
+    const user = signInData.user;
+
+    if (session && user) {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      if (apiUrl) {
+        const meRes = await fetch(`${apiUrl}/users/me`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+          cache: 'no-store',
+        });
+
+        if (!meRes.ok) {
+          const role = user.user_metadata?.role as string | undefined;
+          if (role) {
+            await fetch(`${apiUrl}/users`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${session.access_token}`,
+              },
+              body: JSON.stringify({ role }),
+            });
+          }
+        }
+      }
     }
 
     router.push('/');

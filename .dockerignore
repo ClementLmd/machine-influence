@@ -1,0 +1,8 @@
+node_modules
+back/node_modules
+front/node_modules
+shared/node_modules
+back/dist
+front/.next
+.git
+*.md
