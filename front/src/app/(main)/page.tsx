@@ -5,11 +5,11 @@ import { FeaturedCandidates } from "@/components/home/FeaturedCandidates";
 
 export default function Home() {
   return (
-    <>
+    <div className="-mt-12 md:-mt-20">
       <HeroSection />
       <HowItWorks />
       <RecentListings />
       <FeaturedCandidates />
-    </>
+    </div>
   );
 }

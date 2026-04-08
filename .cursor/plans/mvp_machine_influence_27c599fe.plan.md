@@ -178,8 +178,8 @@ enum CandidatureStatus {
 
 ### Frontend
 
-- **Page `/login**`: formulaire email/password, appel`supabase.auth.signInWithPassword()`
-- **Page `/register**`: formulaire email/password + choix du role (Recruteur ou Independant), appel`supabase.auth.signUp()` puis POST vers le backend pour creer le profil
+- **Page `/login`**: formulaire email/password, appel`supabase.auth.signInWithPassword()`
+- **Page `/register`**: formulaire email/password + choix du role (Recruteur ou Independant), appel`supabase.auth.signUp()` puis POST vers le backend pour creer le profil
 - **Middleware Next.js** (`front/src/middleware.ts`) : protege les routes authentifiees, redirige vers `/login` si non connecte
 - Gestion du state auth via un **AuthProvider** React Context qui ecoute `onAuthStateChange`
 
@@ -193,7 +193,7 @@ enum CandidatureStatus {
 
 ### Frontend
 
-- **Page `/**` (homepage publique) :
+- **Page `/`** (homepage publique) :
   - Hero section avec titre accrocheur et CTA (s'inscrire / se connecter)
   - Section "Comment ca marche" en 3 etapes
   - Section annonces recentes (preview de 3-4 annonces)
@@ -218,10 +218,10 @@ enum CandidatureStatus {
 
 ### Frontend
 
-- **Page `/profile**` : page profil de l'utilisateur connecte avec deux onglets :
+- **Page `/profile`** : page profil de l'utilisateur connecte avec deux onglets :
   - **Candidat** : formulaire d'edition du profil (photo, infos, description, competences, tarif)
   - **Mes annonces** : liste des annonces publiees (si recruteur) ou candidatures envoyees (si independant)
-- **Page `/candidats/:id**` (fiche candidat publique) :
+- **Page `/candidats/:id`** (fiche candidat publique) :
   - Photo de profil
   - Informations (nom, prenom)
   - Description
@@ -244,9 +244,9 @@ enum CandidatureStatus {
 
 ### Frontend
 
-- **Page `/annonces**` : liste des annonces avec barre de recherche et filtres (competences, localisation)
-- **Page `/annonces/:id**` : detail d'une annonce avec informations completes + bouton "Candidater" (pour independant) ou infos recruteur
-- **Page `/annonces/create**` : formulaire de creation d'annonce (titre, description, competences requises, lieu, budget)
+- **Page `/annonces`** : liste des annonces avec barre de recherche et filtres (competences, localisation)
+- **Page `/annonces/:id`** : detail d'une annonce avec informations completes + bouton "Candidater" (pour independant) ou infos recruteur
+- **Page `/annonces/create`** : formulaire de creation d'annonce (titre, description, competences requises, lieu, budget)
 
 ---
 
@@ -258,11 +258,11 @@ enum CandidatureStatus {
   - `POST /annonces/:id/candidatures` : un independant candidater a une annonce
   - `GET /annonces/:id/candidatures` : le recruteur voit les candidatures recues
   - `PATCH /candidatures/:id` : accepter/refuser une candidature (cree automatiquement une conversation si acceptee)
-- **Page `/candidats**` : liste paginee des candidats avec profil complet, filtres par competences
+- **Page `/candidats`** : liste paginee des candidats avec profil complet, filtres par competences
 
 ### Frontend
 
-- **Page `/candidats**` : grille de fiches candidats avec photo, nom, competences, tarif
+- **Page `/candidats`** : grille de fiches candidats avec photo, nom, competences, tarif
 - Bouton "Candidater" sur la page detail annonce -> ouvre une modale avec message optionnel
 - Dans le profil recruteur, section "Candidatures recues" par annonce
 
@@ -286,7 +286,7 @@ enum CandidatureStatus {
 
 ### Frontend
 
-- **Page `/discussion**` : layout en deux colonnes
+- **Page `/discussion`** : layout en deux colonnes
   - Colonne gauche : liste des conversations (avatar, nom, dernier message, date)
   - Colonne droite : fil de messages de la conversation selectionnee
   - Input de message en bas avec envoi en temps reel
