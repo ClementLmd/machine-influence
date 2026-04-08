@@ -280,7 +280,9 @@ describe('UsersController', () => {
     });
 
     it('should throw BadRequestException when no file is provided', async () => {
-      await expect(controller.uploadCv(mockReq, undefined)).rejects.toThrow('Missing file');
+      await expect(controller.uploadCv(mockReq, undefined)).rejects.toThrow(
+        'Missing file',
+      );
     });
 
     it('should throw BadRequestException when file is not a PDF', async () => {
@@ -296,8 +298,14 @@ describe('UsersController', () => {
 
     it('should throw UnauthorizedException when req.user is missing', async () => {
       const emptyReq = { user: null } as unknown as Request;
-      const file = { buffer: Buffer.from('pdf'), mimetype: 'application/pdf', originalname: 'cv.pdf' };
-      await expect(controller.uploadCv(emptyReq, file)).rejects.toThrow(UnauthorizedException);
+      const file = {
+        buffer: Buffer.from('pdf'),
+        mimetype: 'application/pdf',
+        originalname: 'cv.pdf',
+      };
+      await expect(controller.uploadCv(emptyReq, file)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 

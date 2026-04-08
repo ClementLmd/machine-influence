@@ -432,7 +432,10 @@ describe('UsersService', () => {
         ...mockUser,
         portfolioUrl: 'https://portfolio.example.com',
       });
-      prismaMock.user.update.mockResolvedValue({ ...mockUser, portfolioUrl: null });
+      prismaMock.user.update.mockResolvedValue({
+        ...mockUser,
+        portfolioUrl: null,
+      });
 
       await service.updateMe('supabase-id', { portfolioUrl: null });
 

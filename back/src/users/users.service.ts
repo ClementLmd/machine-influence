@@ -183,7 +183,10 @@ export class UsersService {
       description: data.description ?? current.description,
       skills: data.skills ?? current.skills,
       rate: data.rate ?? current.rate,
-      portfolioUrl: data.portfolioUrl !== undefined ? data.portfolioUrl : current.portfolioUrl,
+      portfolioUrl:
+        data.portfolioUrl !== undefined
+          ? data.portfolioUrl
+          : current.portfolioUrl,
     };
 
     const isProfileComplete =
