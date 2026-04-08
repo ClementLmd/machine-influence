@@ -18,6 +18,9 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/back/node_modules ./back/node_modules
 COPY --from=build /app/back/dist ./back/dist
 COPY back/package.json back/
+# Migration files and schema are required at runtime for prisma migrate deploy
+COPY back/prisma ./back/prisma
 
 EXPOSE 3001
-CMD ["node", "back/dist/src/main"]
+# Run pending migrations then start the server
+CMD ["sh", "-c", "npx prisma migrate deploy --schema=back/prisma/schema.prisma && node back/dist/src/main"]
