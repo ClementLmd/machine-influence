@@ -46,6 +46,8 @@ export class UsersService {
         description: true,
         skills: true,
         rate: true,
+        portfolioUrl: true,
+        cvUrl: true,
         isProfileComplete: true,
         createdAt: true,
       },
@@ -116,6 +118,8 @@ export class UsersService {
       description: true,
       skills: true,
       rate: true,
+      portfolioUrl: true,
+      cvUrl: true,
       isProfileComplete: true,
       createdAt: true,
     };
@@ -162,6 +166,7 @@ export class UsersService {
       description?: string | null;
       skills?: string[];
       rate?: number | null;
+      portfolioUrl?: string | null;
     },
   ) {
     const current = await this.prisma.user.findUnique({
@@ -178,6 +183,7 @@ export class UsersService {
       description: data.description ?? current.description,
       skills: data.skills ?? current.skills,
       rate: data.rate ?? current.rate,
+      portfolioUrl: data.portfolioUrl !== undefined ? data.portfolioUrl : current.portfolioUrl,
     };
 
     const isProfileComplete =
@@ -193,6 +199,32 @@ export class UsersService {
         ...next,
         isProfileComplete,
       },
+    });
+  }
+
+  async uploadCv(
+    supabaseId: string,
+    file: { buffer: Buffer; mimetype: string; originalname: string },
+  ) {
+    const bucket = process.env.SUPABASE_AVATARS_BUCKET ?? 'avatars';
+    const path = `users/${supabaseId}/cv.pdf`;
+
+    const { error: uploadError } = await this.supabase.storage
+      .from(bucket)
+      .upload(path, file.buffer, {
+        contentType: 'application/pdf',
+        upsert: true,
+      });
+
+    if (uploadError) {
+      throw new Error(uploadError.message);
+    }
+
+    const { data } = this.supabase.storage.from(bucket).getPublicUrl(path);
+
+    return this.prisma.user.update({
+      where: { supabaseId },
+      data: { cvUrl: data.publicUrl },
     });
   }
 

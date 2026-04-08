@@ -44,6 +44,8 @@ describe('UsersService', () => {
     description: 'A developer',
     skills: ['React', 'TypeScript'],
     rate: 500,
+    portfolioUrl: null,
+    cvUrl: null,
     isProfileComplete: true,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01'),
@@ -403,6 +405,65 @@ describe('UsersService', () => {
           }),
         }),
       );
+    });
+
+    it('should save a portfolioUrl when provided', async () => {
+      prismaMock.user.findUnique.mockResolvedValue(mockUser);
+      prismaMock.user.update.mockResolvedValue({
+        ...mockUser,
+        portfolioUrl: 'https://portfolio.example.com',
+      });
+
+      await service.updateMe('supabase-id', {
+        portfolioUrl: 'https://portfolio.example.com',
+      });
+
+      expect(prismaMock.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            portfolioUrl: 'https://portfolio.example.com',
+          }),
+        }),
+      );
+    });
+
+    it('should clear portfolioUrl when explicitly set to null', async () => {
+      prismaMock.user.findUnique.mockResolvedValue({
+        ...mockUser,
+        portfolioUrl: 'https://portfolio.example.com',
+      });
+      prismaMock.user.update.mockResolvedValue({ ...mockUser, portfolioUrl: null });
+
+      await service.updateMe('supabase-id', { portfolioUrl: null });
+
+      expect(prismaMock.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ portfolioUrl: null }),
+        }),
+      );
+    });
+  });
+
+  describe('uploadCv', () => {
+    it('should upload a PDF to Supabase Storage and save the public URL as cvUrl', async () => {
+      prismaMock.user.update.mockResolvedValue({
+        ...mockUser,
+        cvUrl: 'https://example.com/avatar.png',
+      });
+
+      const result = await service.uploadCv('supabase-id', {
+        buffer: Buffer.from('fake-pdf'),
+        mimetype: 'application/pdf',
+        originalname: 'cv.pdf',
+      });
+
+      expect(prismaMock.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { supabaseId: 'supabase-id' },
+          data: { cvUrl: 'https://example.com/avatar.png' },
+        }),
+      );
+      expect(result.cvUrl).toBe('https://example.com/avatar.png');
     });
   });
 

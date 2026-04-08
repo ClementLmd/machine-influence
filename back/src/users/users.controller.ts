@@ -24,6 +24,7 @@ import {
   IsPositive,
   IsOptional,
   IsString,
+  IsUrl,
   Length,
   Max,
   MaxLength,
@@ -108,6 +109,11 @@ class UpdateMeDto {
   @IsPositive()
   @Max(5000)
   rate?: number;
+
+  @IsOptional()
+  @IsUrl({}, { message: 'portfolioUrl doit être une URL valide' })
+  @MaxLength(500)
+  portfolioUrl?: string | null;
 }
 
 @Controller('users')
@@ -192,6 +198,29 @@ export class UsersController {
       buffer,
       mimetype: file.mimetype ?? 'application/octet-stream',
       originalname: file.originalname ?? 'avatar',
+    });
+  }
+
+  @Post('me/cv')
+  @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadCv(
+    @Req() req: Request,
+    @UploadedFile() file?: UploadedAvatarFile,
+  ) {
+    if (!req.user) throw new UnauthorizedException();
+    if (!file) throw new BadRequestException('Missing file');
+    if (file.mimetype && file.mimetype !== 'application/pdf') {
+      throw new BadRequestException('Le fichier doit être un PDF');
+    }
+    const { supabaseId } = req.user;
+    const buffer: Buffer =
+      file.buffer ?? (file.path ? await readFile(file.path) : Buffer.from([]));
+    if (!buffer.length) throw new BadRequestException('Empty file');
+    return this.usersService.uploadCv(supabaseId, {
+      buffer,
+      mimetype: 'application/pdf',
+      originalname: file.originalname ?? 'cv.pdf',
     });
   }
 

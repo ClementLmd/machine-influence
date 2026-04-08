@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ExternalLink, FileText } from "lucide-react";
 
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
@@ -14,6 +15,8 @@ type PublicUser = {
   description: string | null;
   skills: string[];
   rate: number | null;
+  portfolioUrl: string | null;
+  cvUrl: string | null;
   isProfileComplete: boolean;
   createdAt: string;
 };
@@ -173,6 +176,42 @@ export default async function CandidatePublicPage({
             )}
           </CardContent>
         </Card>
+
+        {(candidate.portfolioUrl || candidate.cvUrl) && (
+          <Card>
+            <CardHeader>
+              <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
+                Documents & liens
+              </h2>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-3">
+                {candidate.portfolioUrl && (
+                  <a
+                    href={candidate.portfolioUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-md border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                  >
+                    <ExternalLink className="size-4 shrink-0" />
+                    Portfolio
+                  </a>
+                )}
+                {candidate.cvUrl && (
+                  <a
+                    href={candidate.cvUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-md border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                  >
+                    <FileText className="size-4 shrink-0" />
+                    Télécharger le CV
+                  </a>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

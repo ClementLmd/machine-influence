@@ -15,6 +15,7 @@ const mockUpdateMe = jest.fn();
 const mockFindFeatured = jest.fn();
 const mockFindAll = jest.fn();
 const mockUploadAvatar = jest.fn();
+const mockUploadCv = jest.fn();
 const mockFindPublicById = jest.fn();
 
 describe('UsersController', () => {
@@ -31,6 +32,8 @@ describe('UsersController', () => {
     description: 'A developer',
     skills: ['React', 'TypeScript'],
     rate: 500,
+    portfolioUrl: null,
+    cvUrl: null,
     isProfileComplete: true,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01'),
@@ -55,6 +58,7 @@ describe('UsersController', () => {
             findFeatured: mockFindFeatured,
             findAll: mockFindAll,
             uploadAvatar: mockUploadAvatar,
+            uploadCv: mockUploadCv,
             findPublicById: mockFindPublicById,
           },
         },
@@ -252,6 +256,48 @@ describe('UsersController', () => {
       expect(mockFindAll).toHaveBeenCalledWith(
         expect.objectContaining({ skills: ['React', 'TypeScript'] }),
       );
+    });
+  });
+
+  describe('uploadCv', () => {
+    it('should upload a PDF and return updated user', async () => {
+      const updatedUser = { ...mockUser, cvUrl: 'https://example.com/cv.pdf' };
+      mockUploadCv.mockResolvedValue(updatedUser);
+
+      const file = {
+        buffer: Buffer.from('fake-pdf'),
+        mimetype: 'application/pdf',
+        originalname: 'cv.pdf',
+      };
+
+      const result = await controller.uploadCv(mockReq, file);
+      expect(result).toEqual(updatedUser);
+      expect(mockUploadCv).toHaveBeenCalledWith('supabase-id', {
+        buffer: file.buffer,
+        mimetype: 'application/pdf',
+        originalname: 'cv.pdf',
+      });
+    });
+
+    it('should throw BadRequestException when no file is provided', async () => {
+      await expect(controller.uploadCv(mockReq, undefined)).rejects.toThrow('Missing file');
+    });
+
+    it('should throw BadRequestException when file is not a PDF', async () => {
+      const file = {
+        buffer: Buffer.from('fake-image'),
+        mimetype: 'image/png',
+        originalname: 'photo.png',
+      };
+      await expect(controller.uploadCv(mockReq, file)).rejects.toThrow(
+        'Le fichier doit être un PDF',
+      );
+    });
+
+    it('should throw UnauthorizedException when req.user is missing', async () => {
+      const emptyReq = { user: null } as unknown as Request;
+      const file = { buffer: Buffer.from('pdf'), mimetype: 'application/pdf', originalname: 'cv.pdf' };
+      await expect(controller.uploadCv(emptyReq, file)).rejects.toThrow(UnauthorizedException);
     });
   });
 
