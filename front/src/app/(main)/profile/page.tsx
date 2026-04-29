@@ -63,6 +63,12 @@ export default function ProfilePage() {
           headers: { Authorization: `Bearer ${token}` },
           cache: "no-store",
         });
+        if (res.status === 404) {
+          if (cancelled) return;
+          setProfile(null);
+          setLoading(false);
+          return;
+        }
         if (!res.ok) throw new Error("Impossible de charger le profil");
         const data = (await res.json()) as UserProfile;
         if (cancelled) return;
