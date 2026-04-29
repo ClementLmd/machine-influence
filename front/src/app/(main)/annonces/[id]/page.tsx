@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { getApiBaseUrl } from "@/lib/api";
 import { calculateDuration } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/server";
+import { AnnouncementDetailActions } from "@/components/announcements/AnnouncementDetailActions";
 import type { AnnouncementWithRecruiter } from "@machine-influence/shared/types";
 
 async function getAnnouncement(id: string): Promise<AnnouncementWithRecruiter | null> {
@@ -23,6 +25,37 @@ async function getAnnouncement(id: string): Promise<AnnouncementWithRecruiter | 
   return (await res.json()) as AnnouncementWithRecruiter;
 }
 
+async function getCurrentUserId(): Promise<string | null> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return null;
+
+    const apiBaseUrl = getApiBaseUrl();
+    const session = await supabase.auth.getSession();
+    const token = session.data.session?.access_token;
+
+    if (!token) return null;
+
+    const res = await fetch(`${apiBaseUrl}/users/me`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      cache: 'no-store',
+    });
+
+    if (!res.ok) return null;
+
+    const userData = await res.json();
+    return userData.id;
+  } catch {
+    return null;
+  }
+}
+
 export default async function AnnouncementDetailPage({
   params,
 }: {
@@ -34,6 +67,9 @@ export default async function AnnouncementDetailPage({
   if (!announcement) {
     notFound();
   }
+
+  const currentUserId = await getCurrentUserId();
+  const isOwner = currentUserId === announcement.recruiterId;
 
   const recruiterName =
     `${announcement.recruiter.firstName ?? ""} ${announcement.recruiter.lastName ?? ""}`.trim() ||
@@ -70,6 +106,15 @@ export default async function AnnouncementDetailPage({
             </div>
             <Badge className="shrink-0">{announcement.productionType}</Badge>
           </div>
+
+          {isOwner && (
+            <div className="mt-4 pt-4 border-t border-border">
+              <AnnouncementDetailActions
+                announcementId={announcement.id}
+                announcementTitle={announcement.title}
+              />
+            </div>
+          )}
         </CardHeader>
 
         <CardContent className="space-y-8">
