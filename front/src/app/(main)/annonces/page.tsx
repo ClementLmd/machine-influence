@@ -7,7 +7,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { getApiBaseUrl } from "@/lib/api";
 import { calculateDuration } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
+import { AnnouncementFilters } from "@/components/announcements/AnnouncementFilters";
 import type { AnnouncementWithRecruiter } from "@machine-influence/shared/types";
+import type { UserRole } from "@machine-influence/shared/enums";
 
 async function getAnnouncements(): Promise<AnnouncementWithRecruiter[]> {
   const apiBaseUrl = getApiBaseUrl();
@@ -22,7 +24,7 @@ async function getAnnouncements(): Promise<AnnouncementWithRecruiter[]> {
   return (await res.json()) as AnnouncementWithRecruiter[];
 }
 
-async function getCurrentUserId(): Promise<string | null> {
+async function getCurrentUser(): Promise<{ id: string; role: UserRole } | null> {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -45,15 +47,29 @@ async function getCurrentUserId(): Promise<string | null> {
     if (!res.ok) return null;
 
     const userData = await res.json();
-    return userData.id;
+    return { id: userData.id, role: userData.role };
   } catch {
     return null;
   }
 }
 
-export default async function AnnouncementsPage() {
-  const announcements = await getAnnouncements();
-  const currentUserId = await getCurrentUserId();
+export default async function AnnouncementsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ filter?: string }>;
+}) {
+  const params = await searchParams;
+  const filter = params.filter || 'all';
+  
+  const allAnnouncements = await getAnnouncements();
+  const currentUser = await getCurrentUser();
+  const currentUserId = currentUser?.id ?? null;
+  const isRecruiter = currentUser?.role === 'RECRUITER';
+
+  // Filter announcements based on the filter parameter
+  const announcements = filter === 'mine' && currentUserId
+    ? allAnnouncements.filter(a => a.recruiterId === currentUserId)
+    : allAnnouncements;
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10">
@@ -66,18 +82,25 @@ export default async function AnnouncementsPage() {
             Découvrez les opportunités publiées par les recruteurs.
           </p>
         </div>
-        {currentUserId && (
+        {isRecruiter && (
           <Button asChild>
             <Link href="/annonces/new">Créer une annonce</Link>
           </Button>
         )}
       </div>
 
+      {isRecruiter && (
+        <div className="mt-6">
+          <AnnouncementFilters canCreateAnnouncements={isRecruiter} />
+        </div>
+      )}
+
       {announcements.length === 0 ? (
         <div className="mt-8 rounded-xl border border-border bg-card p-12 text-center">
           <p className="text-muted-foreground">
-            Aucune annonce disponible pour le moment. Les recruteurs publieront
-            bientôt des opportunités.
+            {filter === 'mine'
+              ? "Vous n'avez pas encore créé d'annonce. Cliquez sur 'Créer une annonce' pour commencer."
+              : "Aucune annonce disponible pour le moment. Les recruteurs publieront bientôt des opportunités."}
           </p>
         </div>
       ) : (
