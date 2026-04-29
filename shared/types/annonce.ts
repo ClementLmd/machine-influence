@@ -1,19 +1,18 @@
-import type { AnnonceStatus } from '../enums';
-
-export interface Annonce {
+export interface Announcement {
   id: string;
   recruiterId: string;
   title: string;
-  description: string;
-  skills: string[];
-  location: string | null;
-  budget: number | null;
-  status: AnnonceStatus;
+  role: string;
+  productionType: string;
+  location: string;
+  isPaid: boolean;
+  startDate: string;
+  endDate: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface AnnonceWithRecruiter extends Annonce {
+export interface AnnouncementWithRecruiter extends Announcement {
   recruiter: {
     id: string;
     firstName: string | null;

@@ -12,7 +12,7 @@ import { HelpCircle, X } from "lucide-react";
 
 type UserProfile = {
   id: string;
-  role: "RECRUITER" | "INDEPENDENT";
+  role: "RECRUITER" | "CANDIDATE";
   email: string;
   firstName: string | null;
   lastName: string | null;

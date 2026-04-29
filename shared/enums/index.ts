@@ -1,5 +1,3 @@
-export type UserRole = 'RECRUITER' | 'INDEPENDENT';
-
-export type AnnonceStatus = 'ACTIVE' | 'CLOSED' | 'DRAFT';
+export type UserRole = 'RECRUITER' | 'CANDIDATE';
 
 export type CandidatureStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED';
