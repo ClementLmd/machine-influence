@@ -466,7 +466,9 @@ describe('UsersService', () => {
           data: { cvUrl: 'https://example.com/avatar.png' },
         }),
       );
-      expect(result.cvUrl).toBe('https://example.com/avatar.png');
+      expect(result).toMatchObject({
+        cvUrl: 'https://example.com/avatar.png',
+      });
     });
   });
 
