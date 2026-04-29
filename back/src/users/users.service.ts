@@ -78,12 +78,14 @@ export class UsersService {
     if (maxRate !== undefined) rateFilter.lte = maxRate;
 
     const trimmedSearch = search?.trim();
+    const normalizedSkills =
+      skills
+        ?.map((skill) => skill.trim().toLocaleLowerCase())
+        .filter(Boolean) ?? [];
 
     const where = {
       isProfileComplete: true,
       ...(role && { role }),
-      // skills filter is case-sensitive — normalize at storage time for full insensitivity
-      ...(skills?.length && { skills: { hasSome: skills } }),
       ...(Object.keys(rateFilter).length && { rate: rateFilter }),
       ...(trimmedSearch && {
         OR: [
@@ -123,6 +125,30 @@ export class UsersService {
       isProfileComplete: true,
       createdAt: true,
     };
+
+    if (normalizedSkills.length) {
+      const matchingUsers = await this.prisma.user.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        select,
+      });
+
+      const filteredUsers = matchingUsers.filter((user) => {
+        const userSkills = user.skills.map((skill) =>
+          skill.trim().toLocaleLowerCase(),
+        );
+        return normalizedSkills.some((skill) =>
+          userSkills.some((userSkill) => userSkill.includes(skill)),
+        );
+      });
+
+      return {
+        users: filteredUsers.slice((page - 1) * limit, page * limit),
+        total: filteredUsers.length,
+        page,
+        limit,
+      };
+    }
 
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
