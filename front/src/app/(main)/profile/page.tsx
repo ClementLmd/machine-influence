@@ -113,19 +113,17 @@ export default function ProfilePage() {
         const token = await getAccessToken();
         if (!token) throw new Error("Vous devez être connecté.");
 
-        const res = await fetch(`${apiBaseUrl}/announcements`, {
+        const announcementsUrl = new URL(`${apiBaseUrl}/announcements`);
+        announcementsUrl.searchParams.set("recruiterId", profile.id);
+
+        const res = await fetch(announcementsUrl.toString(), {
           headers: { Authorization: `Bearer ${token}` },
           cache: "no-store",
         });
 
         if (!res.ok) throw new Error("Impossible de charger les annonces");
 
-        const allAnnouncements = (await res.json()) as AnnouncementWithRecruiter[];
-        
-        // Filter to show only the recruiter's own announcements
-        const myAnnouncements = allAnnouncements.filter(
-          (ann) => ann.recruiterId === profile.id
-        );
+        const myAnnouncements = (await res.json()) as AnnouncementWithRecruiter[];
 
         if (cancelled) return;
         setAnnouncements(myAnnouncements);
