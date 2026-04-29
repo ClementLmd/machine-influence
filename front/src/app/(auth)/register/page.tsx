@@ -17,7 +17,7 @@ const schema = z
     email: z.string().email('Email invalide'),
     password: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
     confirmPassword: z.string(),
-    role: z.enum(['RECRUITER', 'INDEPENDENT'] as const, {
+    role: z.enum(['RECRUITER', 'CANDIDATE'] as const, {
       message: 'Veuillez sélectionner un rôle',
     }),
   })
@@ -121,7 +121,7 @@ export default function RegisterPage() {
               {(
                 [
                   { value: 'RECRUITER', label: 'Recruteur', desc: "Je publie des annonces" },
-                  { value: 'INDEPENDENT', label: 'Indépendant', desc: "Je cherche des missions" },
+                  { value: 'CANDIDATE', label: 'Candidat', desc: "Je cherche des missions" },
                 ] as const
               ).map(({ value, label, desc }) => (
                 <button
