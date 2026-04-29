@@ -8,7 +8,10 @@ import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { getApiBaseUrl } from "@/lib/api";
 import { createClient } from "@/lib/supabase/client";
-import { ExternalLink, FileText, HelpCircle, X } from "lucide-react";
+import { AnnouncementCard } from "@/components/announcements/AnnouncementCard";
+import { ExternalLink, FileText, HelpCircle, X, Plus } from "lucide-react";
+import Link from "next/link";
+import type { AnnouncementWithRecruiter } from "@machine-influence/shared/types";
 
 type UserProfile = {
   id: string;
@@ -37,6 +40,8 @@ export default function ProfilePage() {
   const apiBaseUrl = useMemo(() => getApiBaseUrl(), []);
   const [tab, setTab] = useState<Tab>("candidat");
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [announcements, setAnnouncements] = useState<AnnouncementWithRecruiter[]>([]);
+  const [announcementsLoading, setAnnouncementsLoading] = useState(false);
   const [skills, setSkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState("");
   const [loading, setLoading] = useState(true);
@@ -91,6 +96,54 @@ export default function ProfilePage() {
       cancelled = true;
     };
   }, [apiBaseUrl]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadAnnouncements() {
+      if (tab !== "mes-annonces" || !profile || profile.role !== "RECRUITER") {
+        return;
+      }
+
+      setAnnouncementsLoading(true);
+      try {
+        if (!apiBaseUrl) {
+          throw new Error("NEXT_PUBLIC_API_URL manquant");
+        }
+        const token = await getAccessToken();
+        if (!token) throw new Error("Vous devez être connecté.");
+
+        const res = await fetch(`${apiBaseUrl}/announcements`, {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+        });
+
+        if (!res.ok) throw new Error("Impossible de charger les annonces");
+
+        const allAnnouncements = (await res.json()) as AnnouncementWithRecruiter[];
+        
+        // Filter to show only the recruiter's own announcements
+        const myAnnouncements = allAnnouncements.filter(
+          (ann) => ann.recruiterId === profile.id
+        );
+
+        if (cancelled) return;
+        setAnnouncements(myAnnouncements);
+      } catch (e) {
+        console.error("Error loading announcements:", e);
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : "Erreur lors du chargement des annonces");
+        }
+      } finally {
+        if (!cancelled) setAnnouncementsLoading(false);
+      }
+    }
+
+    void loadAnnouncements();
+    return () => {
+      cancelled = true;
+    };
+  }, [apiBaseUrl, tab, profile]);
 
   const onSave = async () => {
     if (!profile) return;
@@ -268,18 +321,20 @@ export default function ProfilePage() {
         >
           Candidat
         </button>
-        <button
-          type="button"
-          onClick={() => setTab("mes-annonces")}
-          className={[
-            "flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-            tab === "mes-annonces"
-              ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-              : "text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-900/40",
-          ].join(" ")}
-        >
-          Mes annonces
-        </button>
+        {profile?.role === "RECRUITER" && (
+          <button
+            type="button"
+            onClick={() => setTab("mes-annonces")}
+            className={[
+              "flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              tab === "mes-annonces"
+                ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+                : "text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-900/40",
+            ].join(" ")}
+          >
+            Mes annonces
+          </button>
+        )}
       </div>
 
       {error && (
@@ -299,22 +354,54 @@ export default function ProfilePage() {
           </Card>
         </div>
       ) : tab === "mes-annonces" ? (
-        <div className="mt-6">
-          <Card>
-            <CardHeader>
-              <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
-                Mes annonces / candidatures
+        <div className="mt-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">
+                Mes annonces
               </h2>
               <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-                Cette section sera connectée aux epics annonces/candidatures.
+                Gérez vos offres publiées
               </p>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-neutral-600 dark:text-neutral-300">
-                Placeholder.
-              </p>
-            </CardContent>
-          </Card>
+            </div>
+            <Button asChild>
+              <Link href="/annonces/new">
+                <Plus className="mr-2 size-4" />
+                Nouvelle annonce
+              </Link>
+            </Button>
+          </div>
+
+          {announcementsLoading ? (
+            <Card>
+              <CardHeader>
+                <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                  Chargement des annonces…
+                </p>
+              </CardHeader>
+            </Card>
+          ) : announcements.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <p className="text-sm text-neutral-600 dark:text-neutral-300 mb-4">
+                  Vous n&apos;avez pas encore créé d&apos;annonce.
+                </p>
+                <Button asChild>
+                  <Link href="/annonces/new">Créer ma première annonce</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {announcements.map((announcement) => (
+                <AnnouncementCard
+                  key={announcement.id}
+                  announcement={announcement}
+                  isOwn={true}
+                />
+              ))}
+            </div>
+          )}
         </div>
       ) : (
         <div className="mt-6">
