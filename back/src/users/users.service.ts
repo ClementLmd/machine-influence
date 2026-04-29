@@ -46,10 +46,96 @@ export class UsersService {
         description: true,
         skills: true,
         rate: true,
+        portfolioUrl: true,
+        cvUrl: true,
         isProfileComplete: true,
         createdAt: true,
       },
     });
+  }
+
+  async findAll(options: {
+    search?: string;
+    skills?: string[];
+    role?: UserRole;
+    minRate?: number;
+    maxRate?: number;
+    page?: number;
+    limit?: number;
+  }) {
+    const {
+      search,
+      skills,
+      role,
+      minRate,
+      maxRate,
+      page = 1,
+      limit = 12,
+    } = options;
+
+    const rateFilter: { gte?: number; lte?: number } = {};
+    if (minRate !== undefined) rateFilter.gte = minRate;
+    if (maxRate !== undefined) rateFilter.lte = maxRate;
+
+    const trimmedSearch = search?.trim();
+
+    const where = {
+      isProfileComplete: true,
+      ...(role && { role }),
+      // skills filter is case-sensitive — normalize at storage time for full insensitivity
+      ...(skills?.length && { skills: { hasSome: skills } }),
+      ...(Object.keys(rateFilter).length && { rate: rateFilter }),
+      ...(trimmedSearch && {
+        OR: [
+          {
+            firstName: {
+              contains: trimmedSearch,
+              mode: 'insensitive' as const,
+            },
+          },
+          {
+            lastName: {
+              contains: trimmedSearch,
+              mode: 'insensitive' as const,
+            },
+          },
+          {
+            description: {
+              contains: trimmedSearch,
+              mode: 'insensitive' as const,
+            },
+          },
+        ],
+      }),
+    };
+
+    const select = {
+      id: true,
+      role: true,
+      firstName: true,
+      lastName: true,
+      profilePicture: true,
+      description: true,
+      skills: true,
+      rate: true,
+      portfolioUrl: true,
+      cvUrl: true,
+      isProfileComplete: true,
+      createdAt: true,
+    };
+
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        select,
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return { users, total, page, limit };
   }
 
   async findFeatured(limit = 4) {
@@ -80,6 +166,7 @@ export class UsersService {
       description?: string | null;
       skills?: string[];
       rate?: number | null;
+      portfolioUrl?: string | null;
     },
   ) {
     const current = await this.prisma.user.findUnique({
@@ -96,6 +183,10 @@ export class UsersService {
       description: data.description ?? current.description,
       skills: data.skills ?? current.skills,
       rate: data.rate ?? current.rate,
+      portfolioUrl:
+        data.portfolioUrl !== undefined
+          ? data.portfolioUrl
+          : current.portfolioUrl,
     };
 
     const isProfileComplete =
@@ -111,6 +202,32 @@ export class UsersService {
         ...next,
         isProfileComplete,
       },
+    });
+  }
+
+  async uploadCv(
+    supabaseId: string,
+    file: { buffer: Buffer; mimetype: string; originalname: string },
+  ) {
+    const bucket = process.env.SUPABASE_AVATARS_BUCKET ?? 'avatars';
+    const path = `users/${supabaseId}/cv.pdf`;
+
+    const { error: uploadError } = await this.supabase.storage
+      .from(bucket)
+      .upload(path, file.buffer, {
+        contentType: 'application/pdf',
+        upsert: true,
+      });
+
+    if (uploadError) {
+      throw new Error(uploadError.message);
+    }
+
+    const { data } = this.supabase.storage.from(bucket).getPublicUrl(path);
+
+    return this.prisma.user.update({
+      where: { supabaseId },
+      data: { cvUrl: data.publicUrl },
     });
   }
 

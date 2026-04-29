@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { getApiBaseUrl } from "@/lib/api";
 import { createClient } from "@/lib/supabase/client";
-import { HelpCircle, X } from "lucide-react";
+import { ExternalLink, FileText, HelpCircle, X } from "lucide-react";
 
 type UserProfile = {
   id: string;
@@ -20,6 +20,8 @@ type UserProfile = {
   description: string | null;
   skills: string[];
   rate: number | null;
+  portfolioUrl: string | null;
+  cvUrl: string | null;
   isProfileComplete: boolean;
 };
 
@@ -40,8 +42,10 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [cvUploading, setCvUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
+  const cvInputRef = useRef<HTMLInputElement | null>(null);
 
   const fullName =
     `${profile?.firstName ?? ""} ${profile?.lastName ?? ""}`.trim();
@@ -112,6 +116,7 @@ export default function ProfilePage() {
           description: profile.description,
           skills,
           rate: profile.rate,
+          portfolioUrl: profile.portfolioUrl || null,
         }),
       });
 
@@ -123,6 +128,33 @@ export default function ProfilePage() {
       setError(e instanceof Error ? e.message : "Une erreur est survenue");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const onCvSelected = async (file: File) => {
+    if (!profile) return;
+    setCvUploading(true);
+    setError(null);
+    try {
+      if (!apiBaseUrl) throw new Error("NEXT_PUBLIC_API_URL manquant");
+      const token = await getAccessToken();
+      if (!token) throw new Error("Vous devez être connecté.");
+
+      const form = new FormData();
+      form.append("file", file);
+
+      const res = await fetch(`${apiBaseUrl}/users/me/cv`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: form,
+      });
+      if (!res.ok) throw new Error("Impossible d'uploader le CV");
+      const next = (await res.json()) as UserProfile;
+      setProfile(next);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Une erreur est survenue");
+    } finally {
+      setCvUploading(false);
     }
   };
 
@@ -482,6 +514,75 @@ export default function ProfilePage() {
                     }
                     placeholder="350"
                   />
+
+                  <div className="space-y-1.5">
+                    <label className="flex items-center gap-1.5 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                      <ExternalLink className="size-4" />
+                      Lien portfolio
+                    </label>
+                    <Input
+                      type="url"
+                      placeholder="https://monportfolio.com"
+                      value={profile.portfolioUrl ?? ""}
+                      onChange={(e) =>
+                        setProfile((p) =>
+                          p ? { ...p, portfolioUrl: e.target.value } : p,
+                        )
+                      }
+                    />
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                      Site web, Behance, GitHub, LinkedIn…
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-1.5 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                      <FileText className="size-4" />
+                      CV (PDF)
+                    </label>
+                    <div className="flex items-center gap-3">
+                      {profile.cvUrl ? (
+                        <a
+                          href={profile.cvUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-sm text-neutral-600 underline-offset-2 hover:underline dark:text-neutral-300"
+                        >
+                          <FileText className="size-4 shrink-0" />
+                          Voir le CV actuel
+                        </a>
+                      ) : (
+                        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                          Aucun CV déposé.
+                        </p>
+                      )}
+                      <input
+                        ref={cvInputRef}
+                        type="file"
+                        id="cv-upload"
+                        accept="application/pdf"
+                        className="sr-only"
+                        disabled={cvUploading}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) void onCvSelected(file);
+                          e.currentTarget.value = "";
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        isLoading={cvUploading}
+                        onClick={() => cvInputRef.current?.click()}
+                      >
+                        {profile.cvUrl ? "Remplacer" : "Déposer un PDF"}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                      PDF uniquement, 5 MB max.
+                    </p>
+                  </div>
 
                   <div className="flex justify-end">
                     <Button type="button" onClick={onSave} isLoading={saving}>
