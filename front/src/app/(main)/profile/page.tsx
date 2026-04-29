@@ -98,7 +98,8 @@ export default function ProfilePage() {
   }, [apiBaseUrl]);
 
   useEffect(() => {
-    let cancelled = false;
+    const controller = new AbortController();
+    const { signal } = controller;
 
     async function loadAnnouncements() {
       if (tab !== "mes-annonces" || !profile || profile.role !== "RECRUITER") {
@@ -119,27 +120,26 @@ export default function ProfilePage() {
         const res = await fetch(announcementsUrl.toString(), {
           headers: { Authorization: `Bearer ${token}` },
           cache: "no-store",
+          signal,
         });
 
         if (!res.ok) throw new Error("Impossible de charger les annonces");
 
         const myAnnouncements = (await res.json()) as AnnouncementWithRecruiter[];
 
-        if (cancelled) return;
         setAnnouncements(myAnnouncements);
       } catch (e) {
+        if (signal.aborted) return;
         console.error("Error loading announcements:", e);
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : "Erreur lors du chargement des annonces");
-        }
+        setError(e instanceof Error ? e.message : "Erreur lors du chargement des annonces");
       } finally {
-        if (!cancelled) setAnnouncementsLoading(false);
+        if (!signal.aborted) setAnnouncementsLoading(false);
       }
     }
 
     void loadAnnouncements();
     return () => {
-      cancelled = true;
+      controller.abort();
     };
   }, [apiBaseUrl, tab, profile]);
 
