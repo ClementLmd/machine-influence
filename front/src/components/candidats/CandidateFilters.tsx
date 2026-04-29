@@ -33,7 +33,12 @@ export function CandidateFilters({ initial }: { initial: Filters }) {
       (form.elements.namedItem(name) as HTMLInputElement).value.trim();
 
     const params = new URLSearchParams(searchParams.toString());
-    const fields: Array<keyof Filters> = ["search", "skills", "minRate", "maxRate"];
+    const fields: Array<keyof Filters> = [
+      "search",
+      "skills",
+      "minRate",
+      "maxRate",
+    ];
 
     for (const field of fields) {
       const val = getValue(field);
@@ -91,7 +96,7 @@ export function CandidateFilters({ initial }: { initial: Filters }) {
           name="skills"
           type="text"
           defaultValue={initial.skills}
-          placeholder="React, Montage, Motion…"
+          placeholder="Cadrage, Montage, Maquillage…"
           className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder-neutral-400 transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white dark:placeholder-neutral-500"
         />
       </div>

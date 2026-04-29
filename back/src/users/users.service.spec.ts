@@ -202,18 +202,22 @@ describe('UsersService', () => {
       );
     });
 
-    it('should filter by skills using hasSome', async () => {
-      prismaMock.user.findMany.mockResolvedValue([mockUser]);
-      prismaMock.user.count.mockResolvedValue(1);
+    it('should filter by partial skills case-insensitively', async () => {
+      const matchingUser = { ...mockUser, skills: ['Photographie', 'Portrait'] };
+      const otherUser = { ...mockUser, id: 'other-user', skills: ['Vue'] };
+      prismaMock.user.findMany.mockResolvedValue([matchingUser, otherUser]);
 
-      await service.findAll({ skills: ['React'] });
+      const result = await service.findAll({ skills: ['pho'] });
+
+      expect(result.users).toEqual([matchingUser]);
+      expect(result.total).toBe(1);
       expect(prismaMock.user.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: expect.objectContaining({
-            skills: { hasSome: ['React'] },
-          }),
+          where: { isProfileComplete: true },
+          orderBy: { createdAt: 'desc' },
         }),
       );
+      expect(prismaMock.user.count).not.toHaveBeenCalled();
     });
 
     it('should not add skills filter when skills array is empty', async () => {
