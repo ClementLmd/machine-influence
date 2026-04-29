@@ -203,7 +203,10 @@ describe('UsersService', () => {
     });
 
     it('should filter by partial skills case-insensitively', async () => {
-      const matchingUser = { ...mockUser, skills: ['Photographie', 'Portrait'] };
+      const matchingUser = {
+        ...mockUser,
+        skills: ['Photographie', 'Portrait'],
+      };
       const otherUser = { ...mockUser, id: 'other-user', skills: ['Vue'] };
       prismaMock.user.findMany.mockResolvedValue([matchingUser, otherUser]);
 

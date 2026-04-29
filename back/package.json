@@ -10,6 +10,8 @@
     "prisma:generate": "prisma generate",
     "migrate:dev": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
+    "seed:dev": "SEED_MODE=dev ts-node prisma/seed.ts",
+    "seed:prod": "SEED_MODE=prod ts-node prisma/seed.ts",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "dev": "nest start --watch",
