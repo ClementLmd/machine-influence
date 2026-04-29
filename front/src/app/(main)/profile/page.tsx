@@ -97,12 +97,15 @@ export default function ProfilePage() {
     };
   }, [apiBaseUrl]);
 
+  const profileId = profile?.id;
+  const profileRole = profile?.role;
+
   useEffect(() => {
     const controller = new AbortController();
     const { signal } = controller;
 
     async function loadAnnouncements() {
-      if (tab !== "mes-annonces" || !profile || profile.role !== "RECRUITER") {
+      if (tab !== "mes-annonces" || !profileId || profileRole !== "RECRUITER") {
         return;
       }
 
@@ -115,7 +118,7 @@ export default function ProfilePage() {
         if (!token) throw new Error("Vous devez être connecté.");
 
         const announcementsUrl = new URL(`${apiBaseUrl}/announcements`);
-        announcementsUrl.searchParams.set("recruiterId", profile.id);
+        announcementsUrl.searchParams.set("recruiterId", profileId);
 
         const res = await fetch(announcementsUrl.toString(), {
           headers: { Authorization: `Bearer ${token}` },
@@ -141,7 +144,7 @@ export default function ProfilePage() {
     return () => {
       controller.abort();
     };
-  }, [apiBaseUrl, tab, profile]);
+  }, [apiBaseUrl, tab, profileId, profileRole]);
 
   const onSave = async () => {
     if (!profile) return;
