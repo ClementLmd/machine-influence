@@ -97,7 +97,9 @@ export class UsersController {
   async getMe(@Req() req: Request) {
     if (!req.user) throw new UnauthorizedException();
     const { supabaseId } = req.user;
-    return this.usersService.findBySupabaseId(supabaseId);
+    const user = await this.usersService.findBySupabaseId(supabaseId);
+    if (!user) throw new NotFoundException('User not found');
+    return user;
   }
 
   @Patch('me')
