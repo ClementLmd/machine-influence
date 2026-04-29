@@ -24,6 +24,8 @@ export interface UserResponse {
   description: string | null;
   skills: string[];
   rate: number | null;
+  portfolioUrl: string | null;
+  cvUrl: string | null;
   isProfileComplete: boolean;
   createdAt: string;
   updatedAt: string;

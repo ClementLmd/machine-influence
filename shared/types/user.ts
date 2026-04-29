@@ -11,6 +11,8 @@ export interface User {
   description: string | null;
   skills: string[];
   rate: number | null;
+  portfolioUrl: string | null;
+  cvUrl: string | null;
   isProfileComplete: boolean;
   createdAt: string;
   updatedAt: string;
@@ -18,11 +20,15 @@ export interface User {
 
 export interface UserPublic {
   id: string;
-  email?: string;
+  role: UserRole;
   firstName: string | null;
   lastName: string | null;
   profilePicture: string | null;
   description: string | null;
   skills: string[];
   rate: number | null;
+  portfolioUrl: string | null;
+  cvUrl: string | null;
+  isProfileComplete: boolean;
+  createdAt: string;
 }
