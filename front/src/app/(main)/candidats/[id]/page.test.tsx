@@ -7,7 +7,7 @@ const fetchMock = vi.fn();
 
 const candidate = {
   id: "user-1",
-  role: "INDEPENDENT",
+  role: "CANDIDATE",
   firstName: "Alice",
   lastName: "Martin",
   profilePicture: null,
@@ -48,7 +48,7 @@ describe("CandidatePublicPage", () => {
       cache: "no-store",
     });
     expect(screen.getByRole("heading", { name: "Alice Martin" })).toBeInTheDocument();
-    expect(screen.getByText("Indépendant")).toBeInTheDocument();
+    expect(screen.getByText("Candidat")).toBeInTheDocument();
     expect(screen.getByText("Profil complet")).toBeInTheDocument();
     expect(screen.getByText("450 €/jour")).toBeInTheDocument();
     expect(screen.getByText("Membre depuis janvier 2024")).toBeInTheDocument();

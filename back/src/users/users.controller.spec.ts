@@ -1,6 +1,6 @@
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { UserRole } from '@prisma/client';
+import type { UserRole } from '@prisma/client';
 import type { Request } from 'express';
 
 import { AuthGuard } from '../auth/auth.guard';
@@ -17,6 +17,7 @@ const mockFindAll = jest.fn();
 const mockUploadAvatar = jest.fn();
 const mockUploadCv = jest.fn();
 const mockFindPublicById = jest.fn();
+const candidateRole = 'CANDIDATE' as UserRole;
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -25,7 +26,7 @@ describe('UsersController', () => {
     id: 'user-id',
     supabaseId: 'supabase-id',
     email: 'test@example.com',
-    role: UserRole.INDEPENDENT,
+    role: candidateRole,
     firstName: 'John',
     lastName: 'Doe',
     profilePicture: null,
@@ -76,20 +77,20 @@ describe('UsersController', () => {
       mockCreate.mockResolvedValue(mockUser);
 
       const result = await controller.create(mockReq, {
-        role: UserRole.INDEPENDENT,
+        role: candidateRole,
       });
       expect(result).toEqual(mockUser);
       expect(mockCreate).toHaveBeenCalledWith({
         supabaseId: 'supabase-id',
         email: 'test@example.com',
-        role: UserRole.INDEPENDENT,
+        role: candidateRole,
       });
     });
 
     it('should throw UnauthorizedException when req.user is missing', async () => {
       const emptyReq = { user: null } as unknown as Request;
       await expect(
-        controller.create(emptyReq, { role: UserRole.INDEPENDENT }),
+        controller.create(emptyReq, { role: candidateRole }),
       ).rejects.toThrow(UnauthorizedException);
     });
 
@@ -98,7 +99,7 @@ describe('UsersController', () => {
         user: { supabaseId: 'supabase-id', email: undefined },
       } as unknown as Request;
       await expect(
-        controller.create(reqWithoutEmail, { role: UserRole.INDEPENDENT }),
+        controller.create(reqWithoutEmail, { role: candidateRole }),
       ).rejects.toThrow(UnauthorizedException);
     });
   });
@@ -207,9 +208,9 @@ describe('UsersController', () => {
     it('should parse and pass role filter to service', async () => {
       mockFindAll.mockResolvedValue(mockPaginated);
 
-      await controller.getAll({ role: UserRole.INDEPENDENT });
+      await controller.getAll({ role: candidateRole });
       expect(mockFindAll).toHaveBeenCalledWith(
-        expect.objectContaining({ role: UserRole.INDEPENDENT }),
+        expect.objectContaining({ role: candidateRole }),
       );
     });
 

@@ -31,13 +31,12 @@ async function getCandidate(id: string): Promise<PublicUser | null> {
 }
 
 const ROLE_LABELS: Record<PublicUser["role"], string> = {
-  INDEPENDENT: "Indépendant",
+  CANDIDATE: "Candidat",
   RECRUITER: "Recruteur",
 };
 
 const ROLE_CLASSES: Record<PublicUser["role"], string> = {
-  INDEPENDENT:
-    "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  CANDIDATE: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
   RECRUITER:
     "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
 };

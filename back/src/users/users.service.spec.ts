@@ -2,10 +2,12 @@
 import { createClient } from '@supabase/supabase-js';
 import { ConflictException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { UserRole } from '@prisma/client';
+import type { UserRole } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from './users.service';
+
+const candidateRole = 'CANDIDATE' as UserRole;
 
 jest.mock('@supabase/supabase-js', () => ({
   createClient: jest.fn().mockReturnValue({
@@ -37,7 +39,7 @@ describe('UsersService', () => {
     id: 'user-id',
     supabaseId: 'supabase-id',
     email: 'test@example.com',
-    role: UserRole.INDEPENDENT,
+    role: candidateRole,
     firstName: 'John',
     lastName: 'Doe',
     profilePicture: null,
@@ -72,7 +74,7 @@ describe('UsersService', () => {
       const result = await service.create({
         supabaseId: 'supabase-id',
         email: 'test@example.com',
-        role: UserRole.INDEPENDENT,
+        role: candidateRole,
       });
 
       expect(result).toEqual(mockUser);
@@ -80,7 +82,7 @@ describe('UsersService', () => {
         data: {
           supabaseId: 'supabase-id',
           email: 'test@example.com',
-          role: UserRole.INDEPENDENT,
+          role: candidateRole,
         },
       });
     });
@@ -92,7 +94,7 @@ describe('UsersService', () => {
         service.create({
           supabaseId: 'supabase-id',
           email: 'test@example.com',
-          role: UserRole.INDEPENDENT,
+          role: candidateRole,
         }),
       ).rejects.toThrow(ConflictException);
 
@@ -192,10 +194,10 @@ describe('UsersService', () => {
       prismaMock.user.findMany.mockResolvedValue([mockUser]);
       prismaMock.user.count.mockResolvedValue(1);
 
-      await service.findAll({ role: UserRole.INDEPENDENT });
+      await service.findAll({ role: candidateRole });
       expect(prismaMock.user.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: expect.objectContaining({ role: UserRole.INDEPENDENT }),
+          where: expect.objectContaining({ role: candidateRole }),
         }),
       );
     });

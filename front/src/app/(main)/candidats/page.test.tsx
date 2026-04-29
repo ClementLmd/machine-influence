@@ -17,7 +17,7 @@ const fetchMock = vi.fn();
 
 const candidate = {
   id: "user-1",
-  role: "INDEPENDENT",
+  role: "CANDIDATE",
   firstName: "Alice",
   lastName: "Martin",
   profilePicture: null,
