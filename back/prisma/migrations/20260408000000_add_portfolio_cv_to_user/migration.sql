@@ -1,3 +1,3 @@
 -- AlterTable
-ALTER TABLE "User" ADD COLUMN "portfolioUrl" TEXT,
-                   ADD COLUMN "cvUrl" TEXT;
+ALTER TABLE "User" ADD COLUMN     "cvUrl" TEXT,
+ADD COLUMN     "portfolioUrl" TEXT;

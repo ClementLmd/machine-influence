@@ -9,7 +9,7 @@ import { getApiBaseUrl } from "@/lib/api";
 
 type PublicUser = {
   id: string;
-  role: "RECRUITER" | "INDEPENDENT";
+  role: "RECRUITER" | "CANDIDATE";
   firstName: string | null;
   lastName: string | null;
   profilePicture: string | null;

@@ -7,9 +7,9 @@ datasource db {
 }
 
 model User {
-  id                String   @id @default(uuid())
-  supabaseId        String   @unique
-  email             String   @unique
+  id                String        @id @default(uuid())
+  supabaseId        String        @unique
+  email             String        @unique
   role              UserRole
   firstName         String?
   lastName          String?
@@ -17,14 +17,33 @@ model User {
   description       String?
   skills            String[]
   rate              Float?
-  portfolioUrl      String?
   cvUrl             String?
-  isProfileComplete Boolean  @default(false)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  portfolioUrl      String?
+  isProfileComplete Boolean       @default(false)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  announcements     Announcement[]
+}
+
+model Announcement {
+  id             String   @id @default(uuid())
+  recruiterId    String
+  recruiter      User     @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  title          String
+  role           String
+  productionType String
+  location       String
+  isPaid         Boolean  @default(false)
+  startDate      DateTime
+  endDate        DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([recruiterId])
+  @@index([createdAt])
 }
 
 enum UserRole {
   RECRUITER
-  INDEPENDENT
+  CANDIDATE
 }
