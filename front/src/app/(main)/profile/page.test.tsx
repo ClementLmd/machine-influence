@@ -107,10 +107,10 @@ describe("ProfilePage", () => {
 
     render(<ProfilePage />);
 
-    await user.clear(await screen.findByLabelText("Prénom"));
-    await user.type(screen.getByLabelText("Prénom"), "Alicia");
-    await user.clear(screen.getByLabelText("Nom"));
-    await user.type(screen.getByLabelText("Nom"), "Durand");
+    await user.clear(await screen.findByLabelText(/Prénom/));
+    await user.type(screen.getByLabelText(/Prénom/), "Alicia");
+    await user.clear(screen.getByLabelText(/Nom/));
+    await user.type(screen.getByLabelText(/Nom/), "Durand");
     await user.clear(screen.getByLabelText("Email de contact"));
     await user.type(screen.getByLabelText("Email de contact"), "contact@example.com");
     const descriptionInput = screen.getByDisplayValue("Bio initiale");
@@ -120,7 +120,7 @@ describe("ProfilePage", () => {
     await user.type(screen.getByLabelText("Tarif (€/jour)"), "500");
     await user.clear(screen.getByPlaceholderText("https://monportfolio.com"));
     await user.type(screen.getByPlaceholderText("https://monportfolio.com"), "https://portfolio.example");
-    await user.type(screen.getByPlaceholderText("Tapez une compétence puis Entrée"), "Vue{enter}");
+    await user.type(screen.getByPlaceholderText("Tapez une compétence"), "Vue{enter}");
     await user.click(screen.getByRole("button", { name: "Enregistrer" }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
@@ -149,12 +149,14 @@ describe("ProfilePage", () => {
 
     render(<ProfilePage />);
 
-    const skillInput = await screen.findByPlaceholderText("Tapez une compétence puis Entrée");
+    const skillInput = await screen.findByPlaceholderText("Tapez une compétence");
+    expect(screen.getAllByText("*")).toHaveLength(4);
 
     await user.type(skillInput, " react {enter}");
     expect(screen.getAllByText("React")).toHaveLength(1);
 
-    await user.type(skillInput, "Vue{enter}");
+    await user.type(skillInput, "Vue");
+    await user.click(screen.getByRole("button", { name: "Ajouter la compétence" }));
     expect(screen.getByText("Vue")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Retirer React" }));

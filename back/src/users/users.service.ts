@@ -166,7 +166,7 @@ export class UsersService {
 
   async findFeatured(limit = 4) {
     return this.prisma.user.findMany({
-      where: { isProfileComplete: true },
+      where: { isProfileComplete: true, role: UserRole.CANDIDATE },
       orderBy: { createdAt: 'desc' },
       take: limit,
       select: {
