@@ -160,7 +160,7 @@ describe('UsersService', () => {
       expect(result).toEqual([mockUser]);
       expect(prismaMock.user.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { isProfileComplete: true },
+          where: { isProfileComplete: true, role: candidateRole },
           take: 4,
         }),
       );

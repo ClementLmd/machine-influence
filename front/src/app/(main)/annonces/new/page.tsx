@@ -67,6 +67,7 @@ export default function NewAnnouncementPage() {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [isAccessBlocked, setIsAccessBlocked] = useState(false);
   const [calculatedDuration, setCalculatedDuration] = useState<number | null>(null);
 
   // Get today's date in YYYY-MM-DD format for the min attribute
@@ -120,7 +121,17 @@ export default function NewAnnouncementPage() {
       const userData = await res.json();
       if (userData.role !== 'RECRUITER') {
         setServerError('Seuls les recruteurs peuvent créer des annonces.');
+        setIsAccessBlocked(true);
+        setIsCheckingAuth(false);
         setTimeout(() => router.push('/annonces'), 3000);
+        return;
+      }
+
+      if (!userData.isProfileComplete) {
+        setServerError('Complétez votre profil avant de créer une annonce.');
+        setIsAccessBlocked(true);
+        setIsCheckingAuth(false);
+        setTimeout(() => router.push('/profile'), 3000);
         return;
       }
 
@@ -208,12 +219,23 @@ export default function NewAnnouncementPage() {
           <p className="mt-1 text-sm text-muted-foreground">
             Publiez une opportunité pour trouver les talents dont vous avez besoin.
           </p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Votre profil recruteur doit être complet avant publication.
+          </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {serverError && (
               <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
                 {serverError}
+                {serverError.includes('profil') && (
+                  <Link
+                    href="/profile"
+                    className="ml-1 font-medium underline underline-offset-2"
+                  >
+                    Aller au profil
+                  </Link>
+                )}
               </div>
             )}
 
@@ -302,7 +324,7 @@ export default function NewAnnouncementPage() {
             )}
 
             <div className="flex gap-3 pt-4">
-              <Button type="submit" disabled={isSubmitting} className="flex-1">
+              <Button type="submit" disabled={isSubmitting || isAccessBlocked} className="flex-1">
                 {isSubmitting ? 'Création...' : 'Créer l\'annonce'}
               </Button>
               <Button type="button" variant="outline" asChild>
