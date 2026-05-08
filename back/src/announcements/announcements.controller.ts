@@ -28,11 +28,19 @@ export class AnnouncementsController {
   constructor(private readonly announcementsService: AnnouncementsService) {}
 
   @Get()
-  async findAll(@Query('limit') limit?: string) {
+  async findAll(
+    @Query('limit') limit?: string,
+    @Query('recruiterId') recruiterId?: string,
+  ) {
     const limitNum = limit ? parseInt(limit, 10) : undefined;
     if (limit && (isNaN(limitNum!) || limitNum! <= 0)) {
       throw new BadRequestException('Invalid limit parameter');
     }
+
+    if (recruiterId?.trim()) {
+      return this.announcementsService.findByRecruiterId(recruiterId.trim());
+    }
+
     return this.announcementsService.findAll(limitNum);
   }
 
@@ -75,11 +83,17 @@ export class AnnouncementsController {
     const { supabaseId } = req.user;
     const user = await this.announcementsService['prisma'].user.findUnique({
       where: { supabaseId },
-      select: { id: true },
+      select: { id: true, isProfileComplete: true },
     });
 
     if (!user) {
       throw new UnauthorizedException('User not found');
+    }
+
+    if (!user.isProfileComplete) {
+      throw new ForbiddenException(
+        'Complétez votre profil avant de créer une annonce',
+      );
     }
 
     return this.announcementsService.create(user.id, dto);

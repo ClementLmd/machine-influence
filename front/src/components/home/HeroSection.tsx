@@ -3,7 +3,11 @@ import { ArrowRight, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-export function HeroSection() {
+type HeroSectionProps = {
+  isAuthenticated?: boolean;
+};
+
+export function HeroSection({ isAuthenticated = false }: HeroSectionProps) {
   return (
     <section className="relative min-h-[100vh] flex items-center overflow-hidden">
       <div className="absolute inset-0 z-0">
@@ -42,8 +46,8 @@ export function HeroSection() {
               className="bg-accent text-accent-foreground hover:bg-accent/90 text-base px-8"
               asChild
             >
-              <Link href="/register">
-                S&apos;inscrire gratuitement
+              <Link href={isAuthenticated ? "/profile" : "/register"}>
+                {isAuthenticated ? "Voir mon profil" : "S'inscrire gratuitement"}
                 <ArrowRight className="ml-2 size-4" />
               </Link>
             </Button>
@@ -53,7 +57,9 @@ export function HeroSection() {
               className="border-primary-foreground/30 text-primary-foreground bg-transparent hover:bg-primary-foreground/10 hover:text-primary-foreground text-base px-8"
               asChild
             >
-              <Link href="/annonces">Publier un projet</Link>
+              <Link href="/annonces">
+                {isAuthenticated ? "Voir les annonces" : "Publier un projet"}
+              </Link>
             </Button>
           </div>
 

@@ -1,57 +1,101 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/Button";
-import { Star, ArrowRight } from "lucide-react";
-import Image from "next/image";
+import { Avatar } from "@/components/ui/Avatar";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { getApiBaseUrl } from "@/lib/api";
 
-const candidates = [
-  {
-    id: 1,
-    name: "Camille Durand",
-    role: "Actrice",
-    location: "Paris",
-    rating: 4.9,
-    reviews: 24,
-    image: "/images/profile-1.jpg",
-    tags: ["Cinéma", "Théâtre", "Doublage"],
-    available: true,
-  },
-  {
-    id: 2,
-    name: "Thomas Leroy",
-    role: "Cadreur / Chef opérateur",
-    location: "Lyon",
-    rating: 4.8,
-    reviews: 31,
-    image: "/images/profile-2.jpg",
-    tags: ["Steadicam", "Drone", "RED"],
-    available: true,
-  },
-  {
-    id: 3,
-    name: "Sophie Martin",
-    role: "Maquilleuse SFX",
-    location: "Paris",
-    rating: 5.0,
-    reviews: 18,
-    image: "/images/profile-3.jpg",
-    tags: ["Effets spéciaux", "Mode", "Cinéma"],
-    available: false,
-  },
-  {
-    id: 4,
-    name: "Lucas Petit",
-    role: "Ingénieur son",
-    location: "Bordeaux",
-    rating: 4.7,
-    reviews: 22,
-    image: "/images/profile-4.jpg",
-    tags: ["Mixage", "Perche", "Post-prod"],
-    available: true,
-  },
-];
+type FeaturedProfile = {
+  id: string;
+  role: "RECRUITER" | "CANDIDATE";
+  firstName: string | null;
+  lastName: string | null;
+  profilePicture: string | null;
+  description: string | null;
+  skills: string[];
+  rate: number | null;
+  isProfileComplete: boolean;
+};
 
-export function FeaturedCandidates() {
+const FEATURED_PROFILE_KEYS = (process.env.FEATURED_PROFILE_KEYS ?? "")
+  .split(",")
+  .map((key) => key.trim())
+  .filter(Boolean);
+
+function fullName(profile: FeaturedProfile) {
+  return `${profile.firstName ?? ""} ${profile.lastName ?? ""}`.trim();
+}
+
+function normalizeKey(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function getFeaturedProfiles(): Promise<FeaturedProfile[]> {
+  const apiBaseUrl = getApiBaseUrl();
+  if (!apiBaseUrl) return [];
+
+  try {
+    if (FEATURED_PROFILE_KEYS.length) {
+      const byId = await Promise.all(
+        FEATURED_PROFILE_KEYS.map(async (key) => {
+          const res = await fetch(
+            `${apiBaseUrl}/users/${encodeURIComponent(key)}`,
+            {
+              cache: "no-store",
+            },
+          );
+          if (!res.ok) return null;
+          return (await res.json()) as FeaturedProfile;
+        }),
+      );
+
+      const profilesById = byId.filter(
+        (profile): profile is FeaturedProfile => {
+          return (
+            !!profile &&
+            profile.role === "CANDIDATE" &&
+            profile.isProfileComplete
+          );
+        },
+      );
+
+      if (profilesById.length) return profilesById.slice(0, 4);
+
+      const res = await fetch(`${apiBaseUrl}/users?role=CANDIDATE&limit=50`, {
+        cache: "no-store",
+      });
+      if (!res.ok) return [];
+      const data = (await res.json()) as { users: FeaturedProfile[] };
+      const wantedKeys = new Set(FEATURED_PROFILE_KEYS.map(normalizeKey));
+
+      return data.users
+        .filter((profile) => wantedKeys.has(normalizeKey(fullName(profile))))
+        .slice(0, 4);
+    }
+
+    const res = await fetch(`${apiBaseUrl}/users/featured`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+
+    return ((await res.json()) as FeaturedProfile[]).slice(0, 4);
+  } catch {
+    return [];
+  }
+}
+
+export async function FeaturedCandidates() {
+  const candidates = await getFeaturedProfiles();
+
+  if (candidates.length === 0) {
+    return null;
+  }
+
   return (
     <section id="talents" className="py-24 lg:py-32 bg-background">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -81,62 +125,57 @@ export function FeaturedCandidates() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {candidates.map((candidate) => (
-            <Link
-              key={candidate.id}
-              href={`/candidats/${candidate.id}`}
-              className="group block bg-card rounded-xl border border-border overflow-hidden hover:border-accent/30 hover:shadow-sm transition-all cursor-pointer"
-            >
-              <div className="relative aspect-[4/3] overflow-hidden">
-                <Image
-                  src={candidate.image}
-                  alt={`Photo de ${candidate.name}`}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                {candidate.available && (
-                  <div className="absolute top-3 right-3">
-                    <Badge className="bg-emerald-600 text-white border-0 text-xs">
-                      Disponible
-                    </Badge>
-                  </div>
-                )}
-              </div>
+          {candidates.map((candidate) => {
+            const name = fullName(candidate) || "Talent";
+            const primarySkill = candidate.skills[0] ?? "Audiovisuel";
 
-              <div className="p-5">
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <h3 className="font-semibold text-foreground">
-                    {candidate.name}
-                  </h3>
-                  <div className="flex items-center gap-1 text-sm shrink-0">
-                    <Star className="size-3.5 fill-accent text-accent" />
-                    <span className="font-medium text-foreground">
-                      {candidate.rating}
-                    </span>
-                    <span className="text-muted-foreground">
-                      ({candidate.reviews})
-                    </span>
+            return (
+              <Link
+                key={candidate.id}
+                href={`/candidats/${candidate.id}`}
+                className="group block bg-card rounded-xl border border-border p-5 hover:border-accent/30 hover:shadow-sm transition-all cursor-pointer"
+              >
+                <div className="flex items-start gap-3">
+                  <Avatar
+                    src={candidate.profilePicture}
+                    name={name}
+                    size="md"
+                  />
+                  <div className="min-w-0">
+                    <h3 className="truncate font-semibold text-foreground">
+                      {name}
+                    </h3>
+                    <p className="mt-1 text-sm text-muted-foreground truncate">
+                      {primarySkill}
+                    </p>
+                    {candidate.rate ? (
+                      <p className="mt-0.5 text-sm text-muted-foreground whitespace-nowrap">
+                        {candidate.rate} €/jour
+                      </p>
+                    ) : null}
                   </div>
                 </div>
 
-                <p className="text-sm text-muted-foreground mb-3">
-                  {candidate.role} · {candidate.location}
-                </p>
+                {candidate.description?.trim() && (
+                  <p className="mt-4 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                    {candidate.description}
+                  </p>
+                )}
 
-                <div className="flex flex-wrap gap-1.5">
-                  {candidate.tags.map((tag) => (
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {candidate.skills.slice(0, 3).map((skill) => (
                     <Badge
-                      key={tag}
+                      key={skill}
                       variant="secondary"
                       className="text-xs font-normal"
                     >
-                      {tag}
+                      {skill}
                     </Badge>
                   ))}
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       </div>
     </section>

@@ -464,6 +464,7 @@ export default function ProfilePage() {
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <Input
                       label="Prénom"
+                      requiredMark
                       value={profile.firstName ?? ""}
                       onChange={(e) =>
                         setProfile((p) =>
@@ -473,6 +474,7 @@ export default function ProfilePage() {
                     />
                     <Input
                       label="Nom"
+                      requiredMark
                       value={profile.lastName ?? ""}
                       onChange={(e) =>
                         setProfile((p) =>
@@ -520,6 +522,9 @@ export default function ProfilePage() {
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                       Description
+                      <span className="ml-1 text-red-500" aria-hidden="true">
+                        *
+                      </span>
                     </label>
                     <textarea
                       className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:focus:border-neutral-500"
@@ -536,6 +541,9 @@ export default function ProfilePage() {
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                       Compétences
+                      <span className="ml-1 text-red-500" aria-hidden="true">
+                        *
+                      </span>
                     </label>
 
                     <div className="flex flex-wrap gap-2">
@@ -543,16 +551,16 @@ export default function ProfilePage() {
                         skills.map((skill) => (
                           <span
                             key={skill}
-                            className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300"
+                            className="inline-flex min-h-9 items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300"
                           >
                             <span>{skill}</span>
                             <button
                               type="button"
                               aria-label={`Retirer ${skill}`}
-                              className="inline-flex rounded-full p-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                              className="inline-flex rounded-full p-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-800"
                               onClick={() => removeSkill(skill)}
                             >
-                              <X className="size-3" />
+                              <X className="size-3.5" />
                             </button>
                           </span>
                         ))
@@ -563,21 +571,36 @@ export default function ProfilePage() {
                       )}
                     </div>
 
-                    <Input
-                      id="skill-input"
-                      placeholder="Tapez une compétence puis Entrée"
-                      value={skillInput}
-                      onChange={(e) => setSkillInput(e.target.value)}
-                      maxLength={30}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          addSkill();
-                        }
-                      }}
-                    />
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <Input
+                        id="skill-input"
+                        placeholder="Tapez une compétence"
+                        value={skillInput}
+                        onChange={(e) => setSkillInput(e.target.value)}
+                        maxLength={30}
+                        inputMode="text"
+                        autoCapitalize="none"
+                        className="min-h-11"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addSkill();
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="min-h-11 sm:self-start"
+                        onClick={addSkill}
+                        aria-label="Ajouter la compétence"
+                      >
+                        <Plus className="mr-2 size-4" />
+                        Ajouter
+                      </Button>
+                    </div>
                     <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                      Max 30 caractères par compétence.
+                      Max 30 caractères par compétence. Appuyez sur Entrée ou sur Ajouter.
                     </p>
                   </div>
 
