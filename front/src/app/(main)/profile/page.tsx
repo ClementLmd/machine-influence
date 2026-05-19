@@ -51,6 +51,11 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const cvInputRef = useRef<HTMLInputElement | null>(null);
+  const profileRef = useRef(profile);
+  const skillsRef = useRef(skills);
+
+  profileRef.current = profile;
+  skillsRef.current = skills;
 
   const fullName =
     `${profile?.firstName ?? ""} ${profile?.lastName ?? ""}`.trim();
@@ -147,7 +152,9 @@ export default function ProfilePage() {
   }, [apiBaseUrl, tab, profileId, profileRole]);
 
   const onSave = async () => {
-    if (!profile) return;
+    const currentProfile = profileRef.current;
+    const currentSkills = skillsRef.current;
+    if (!currentProfile) return;
     setSaving(true);
     setError(null);
     try {
@@ -157,21 +164,24 @@ export default function ProfilePage() {
       const token = await getAccessToken();
       if (!token) throw new Error("Vous devez être connecté.");
 
+      const payload = {
+        email: currentProfile.email,
+        firstName: currentProfile.firstName ?? "",
+        lastName: currentProfile.lastName ?? "",
+        description: currentProfile.description ?? "",
+        skills: currentSkills,
+        rate: currentProfile.rate,
+        portfolioUrl: currentProfile.portfolioUrl || null,
+      };
+
       const res = await fetch(`${apiBaseUrl}/users/me`, {
         method: "PATCH",
+        cache: "no-store",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          email: profile.email,
-          firstName: profile.firstName,
-          lastName: profile.lastName,
-          description: profile.description,
-          skills,
-          rate: profile.rate,
-          portfolioUrl: profile.portfolioUrl || null,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) throw new Error("Impossible d'enregistrer");

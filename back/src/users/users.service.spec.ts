@@ -454,6 +454,44 @@ describe('UsersService', () => {
         }),
       );
     });
+
+    it('should clear rate when explicitly set to null', async () => {
+      prismaMock.user.findUnique.mockResolvedValue(mockUser);
+      prismaMock.user.update.mockResolvedValue({ ...mockUser, rate: null });
+
+      await service.updateMe('supabase-id', { rate: null });
+
+      expect(prismaMock.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ rate: null }),
+        }),
+      );
+    });
+
+    it('should apply a second consecutive update with new values', async () => {
+      const afterFirst = { ...mockUser, firstName: 'Alicia' };
+      prismaMock.user.findUnique.mockResolvedValue(afterFirst);
+      prismaMock.user.update.mockResolvedValue({
+        ...afterFirst,
+        firstName: 'Alicia2',
+      });
+
+      await service.updateMe('supabase-id', {
+        email: afterFirst.email,
+        firstName: 'Alicia2',
+        lastName: afterFirst.lastName,
+        description: afterFirst.description,
+        skills: afterFirst.skills,
+        rate: afterFirst.rate,
+        portfolioUrl: afterFirst.portfolioUrl,
+      });
+
+      expect(prismaMock.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ firstName: 'Alicia2' }),
+        }),
+      );
+    });
   });
 
   describe('uploadCv', () => {
