@@ -126,6 +126,7 @@ describe("ProfilePage", () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
     expect(fetchMock).toHaveBeenLastCalledWith("https://api.test/users/me", {
       method: "PATCH",
+      cache: "no-store",
       headers: {
         "Content-Type": "application/json",
         Authorization: "Bearer test-token",
@@ -141,6 +142,46 @@ describe("ProfilePage", () => {
       }),
     });
     expect(await screen.findByText("Profil complet")).toBeInTheDocument();
+  });
+
+  it("persists a second save without refreshing the page", async () => {
+    const user = userEvent.setup();
+    mockProfileLoad();
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          ...profile,
+          firstName: "Alicia",
+          isProfileComplete: true,
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          ...profile,
+          firstName: "Alicia2",
+          isProfileComplete: true,
+        }),
+      });
+
+    render(<ProfilePage />);
+
+    const firstNameInput = await screen.findByLabelText(/Prénom/);
+    await user.clear(firstNameInput);
+    await user.type(firstNameInput, "Alicia");
+    await user.click(screen.getByRole("button", { name: "Enregistrer" }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+
+    await user.clear(firstNameInput);
+    await user.type(firstNameInput, "Alicia2");
+    await user.click(screen.getByRole("button", { name: "Enregistrer" }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3));
+    expect(JSON.parse(String(fetchMock.mock.calls[2][1]?.body))).toMatchObject({
+      firstName: "Alicia2",
+    });
+    expect(await screen.findByDisplayValue("Alicia2")).toBeInTheDocument();
   });
 
   it("adds unique skills, removes skills, and reports too-long skills", async () => {
