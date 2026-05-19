@@ -203,12 +203,17 @@ export class UsersService {
     }
 
     const next = {
-      email: data.email ?? current.email,
-      firstName: data.firstName ?? current.firstName,
-      lastName: data.lastName ?? current.lastName,
-      description: data.description ?? current.description,
-      skills: data.skills ?? current.skills,
-      rate: data.rate ?? current.rate,
+      email:
+        data.email !== undefined && data.email !== null
+          ? data.email
+          : current.email,
+      firstName:
+        data.firstName !== undefined ? data.firstName : current.firstName,
+      lastName: data.lastName !== undefined ? data.lastName : current.lastName,
+      description:
+        data.description !== undefined ? data.description : current.description,
+      skills: data.skills !== undefined ? data.skills : current.skills,
+      rate: data.rate !== undefined ? data.rate : current.rate,
       portfolioUrl:
         data.portfolioUrl !== undefined
           ? data.portfolioUrl
