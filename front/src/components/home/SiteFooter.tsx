@@ -5,26 +5,23 @@ const footerLinks = {
   plateforme: [
     { label: "Trouver un freelance", href: "/candidats" },
     { label: "Trouver une mission", href: "/annonces" },
-    { label: "Publier un projet", href: "/annonces" },
-    { label: "Tarifs", href: "#" },
+    { label: "Publier un projet", href: "/annonces/new" },
   ],
   metiers: [
-    { label: "Acteurs", href: "/candidats?metier=acteur" },
-    { label: "Cadreurs", href: "/candidats?metier=cadreur" },
-    { label: "Maquilleurs", href: "/candidats?metier=maquilleur" },
-    { label: "Ingénieurs son", href: "/candidats?metier=son" },
-    { label: "Monteurs", href: "/candidats?metier=monteur" },
+    { label: "Acteurs", href: "/candidats?skills=acting" },
+    { label: "Cadreurs", href: "/candidats?skills=caméra" },
+    { label: "Maquilleurs", href: "/candidats?skills=maquillage" },
+    { label: "Ingénieurs son", href: "/candidats?skills=son" },
+    { label: "Monteurs", href: "/candidats?skills=montage" },
   ],
   entreprise: [
-    { label: "À propos", href: "#" },
-    { label: "Blog", href: "#" },
-    { label: "Contact", href: "#" },
-    { label: "Presse", href: "#" },
+    { label: "À propos", href: "/a-propos" },
+    { label: "Contact", href: "/contact" },
   ],
   legal: [
-    { label: "CGU", href: "#" },
-    { label: "Politique de confidentialité", href: "#" },
-    { label: "Mentions légales", href: "#" },
+    { label: "CGU", href: "/cgu" },
+    { label: "Politique de confidentialité", href: "/confidentialite" },
+    { label: "Mentions légales", href: "/mentions-legales" },
   ],
 };
 
@@ -119,31 +116,11 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-primary-foreground/10 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="mt-12 pt-8 border-t border-primary-foreground/10 text-center">
           <p className="text-xs text-primary-foreground/40">
             © {new Date().getFullYear()} Machine d&apos;Influence. Tous droits
             réservés.
           </p>
-          <div className="flex items-center gap-6">
-            <a
-              href="#"
-              className="text-xs text-primary-foreground/40 hover:text-primary-foreground transition-colors"
-            >
-              Twitter
-            </a>
-            <a
-              href="#"
-              className="text-xs text-primary-foreground/40 hover:text-primary-foreground transition-colors"
-            >
-              LinkedIn
-            </a>
-            <a
-              href="#"
-              className="text-xs text-primary-foreground/40 hover:text-primary-foreground transition-colors"
-            >
-              Instagram
-            </a>
-          </div>
         </div>
       </div>
     </footer>
