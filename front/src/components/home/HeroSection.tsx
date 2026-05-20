@@ -1,13 +1,28 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { ArrowRight, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 
-type HeroSectionProps = {
-  isAuthenticated?: boolean;
-};
+export function HeroSection() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-export function HeroSection({ isAuthenticated = false }: HeroSectionProps) {
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      setIsAuthenticated(!!data.user);
+    });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session?.user);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
     <section className="relative min-h-[100vh] flex items-center overflow-hidden">
       <div className="absolute inset-0 z-0">
