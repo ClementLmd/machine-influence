@@ -49,7 +49,7 @@ export function ConversationList({
           Aucune conversation pour le moment.
         </p>
         <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-500">
-          Commencez une conversation depuis le profil d'un candidat ou une annonce.
+          Commencez une conversation depuis le profil d&apos;un candidat ou une annonce.
         </p>
       </div>
     );

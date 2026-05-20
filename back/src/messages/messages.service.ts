@@ -316,10 +316,7 @@ export class MessagesService {
     };
   }
 
-  async markAsRead(
-    conversationId: string,
-    userId: string,
-  ): Promise<void> {
+  async markAsRead(conversationId: string, userId: string): Promise<void> {
     // Vérifier que l'utilisateur est participant de la conversation
     const participation = await this.prisma.conversationParticipant.findFirst({
       where: {
