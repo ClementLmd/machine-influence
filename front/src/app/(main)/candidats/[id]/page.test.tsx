@@ -45,7 +45,7 @@ describe("CandidatePublicPage", () => {
     vi.unstubAllGlobals();
   });
 
-  it("renders public talent details and contact links", async () => {
+  it("renders public talent details and document links", async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
       json: async () => candidate,
@@ -62,22 +62,19 @@ describe("CandidatePublicPage", () => {
     expect(screen.getByText("Profil complet")).toBeInTheDocument();
     expect(screen.getByText("450 €/jour")).toBeInTheDocument();
     expect(screen.getByText("Membre depuis janvier 2024")).toBeInTheDocument();
-    expect(screen.getByText("Développeuse front-end spécialisée React.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Développeuse front-end spécialisée React."),
+    ).toBeInTheDocument();
     expect(screen.getByText("React")).toBeInTheDocument();
     expect(screen.getByText("TypeScript")).toBeInTheDocument();
 
-    expect(screen.getByRole("link", { name: "Contacter" })).toHaveAttribute(
-      "href",
-      "/discussion?userId=user-1",
-    );
     expect(screen.getByRole("link", { name: "Portfolio" })).toHaveAttribute(
       "href",
       "https://alice.example",
     );
-    expect(screen.getByRole("link", { name: "Télécharger le CV" })).toHaveAttribute(
-      "href",
-      "https://alice.example/cv.pdf",
-    );
+    expect(
+      screen.getByRole("link", { name: "Télécharger le CV" }),
+    ).toHaveAttribute("href", "https://alice.example/cv.pdf");
   });
 
   it("shows a not-found state when the talent cannot be loaded", async () => {
@@ -126,5 +123,11 @@ describe("CandidatePublicPage", () => {
     });
 
     expect(fetchMock).not.toHaveBeenCalled();
+<<<<<<< HEAD
+=======
+    expect(
+      screen.getByRole("heading", { name: "Candidat introuvable" }),
+    ).toBeInTheDocument();
+>>>>>>> c53700d (fix: fix tests)
   });
 });
