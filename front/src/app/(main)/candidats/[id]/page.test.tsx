@@ -1,7 +1,19 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import CandidatePublicPage from "./page";
+
+const navigationMock = vi.hoisted(() => ({
+  params: { id: "user-1" },
+}));
+
+vi.mock("next/navigation", () => ({
+  useParams: () => navigationMock.params,
+}));
+
+vi.mock("@/hooks/use-current-user", () => ({
+  useCurrentUser: () => ({ currentUser: null, loading: false }),
+}));
 
 const fetchMock = vi.fn();
 
@@ -25,6 +37,7 @@ describe("CandidatePublicPage", () => {
     vi.stubEnv("NEXT_PUBLIC_API_URL", "https://api.test/");
     fetchMock.mockReset();
     vi.stubGlobal("fetch", fetchMock);
+    navigationMock.params = { id: "user-1" };
   });
 
   afterEach(() => {
@@ -38,16 +51,13 @@ describe("CandidatePublicPage", () => {
       json: async () => candidate,
     });
 
-    render(
-      await CandidatePublicPage({
-        params: Promise.resolve({ id: "user-1" }),
-      }),
-    );
+    render(<CandidatePublicPage />);
 
-    expect(fetchMock).toHaveBeenCalledWith("https://api.test/users/user-1", {
-      cache: "no-store",
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "Alice Martin" })).toBeInTheDocument();
     });
-    expect(screen.getByRole("heading", { name: "Alice Martin" })).toBeInTheDocument();
+
+    expect(fetchMock).toHaveBeenCalledWith("https://api.test/users/user-1");
     expect(screen.getByText("Candidat")).toBeInTheDocument();
     expect(screen.getByText("Profil complet")).toBeInTheDocument();
     expect(screen.getByText("450 €/jour")).toBeInTheDocument();
@@ -71,15 +81,15 @@ describe("CandidatePublicPage", () => {
   });
 
   it("shows a not-found state when the talent cannot be loaded", async () => {
-    fetchMock.mockResolvedValueOnce({ ok: false });
+    navigationMock.params = { id: "missing-user" };
+    fetchMock.mockResolvedValueOnce({ ok: false, status: 404 });
 
-    render(
-      await CandidatePublicPage({
-        params: Promise.resolve({ id: "missing-user" }),
-      }),
-    );
+    render(<CandidatePublicPage />);
 
-    expect(screen.getByRole("heading", { name: "Candidat introuvable" })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "Candidat introuvable" })).toBeInTheDocument();
+    });
+
     expect(screen.getByText("Vérifiez l'URL ou réessayez plus tard.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "← Retour aux talents" })).toHaveAttribute(
       "href",
@@ -97,25 +107,24 @@ describe("CandidatePublicPage", () => {
       }),
     });
 
-    render(
-      await CandidatePublicPage({
-        params: Promise.resolve({ id: "user-1" }),
-      }),
-    );
+    render(<CandidatePublicPage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "Alice Martin" })).toBeInTheDocument();
+    });
 
     expect(screen.queryByText("Documents & liens")).not.toBeInTheDocument();
   });
 
-  it("shows an empty profile when the API URL is missing", async () => {
+  it("shows an unconfigured state when the API URL is missing", async () => {
     vi.stubEnv("NEXT_PUBLIC_API_URL", "");
 
-    render(
-      await CandidatePublicPage({
-        params: Promise.resolve({ id: "user-1" }),
-      }),
-    );
+    render(<CandidatePublicPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Configuration API manquante/i)).toBeInTheDocument();
+    });
 
     expect(fetchMock).not.toHaveBeenCalled();
-    expect(screen.getByRole("heading", { name: "Candidat introuvable" })).toBeInTheDocument();
   });
 });
