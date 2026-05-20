@@ -39,9 +39,9 @@ function MessagesPageContent() {
           setMessages((prev) => [...prev, message]);
         }
 
-        // Mettre à jour la liste des conversations
-        setConversations((prev) =>
-          prev.map((conv) => {
+        // Mettre à jour la liste des conversations et trier par date de dernier message
+        setConversations((prev) => {
+          const updated = prev.map((conv) => {
             if (conv.id === message.conversationId) {
               return {
                 ...conv,
@@ -51,13 +51,18 @@ function MessagesPageContent() {
                   message.senderId === currentUserId
                     ? conv.unreadCount
                     : conv.id === selectedConversationId
-                      ? conv.unreadCount
+                      ? 0 // L'utilisateur regarde actuellement cette conversation
                       : conv.unreadCount + 1,
               };
             }
             return conv;
-          }),
-        );
+          });
+          
+          // Trier par date de dernier message (le plus récent en premier)
+          return updated.sort((a, b) => 
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+          );
+        });
       },
       onUserTyping: (data) => {
         if (data.isTyping) {
@@ -150,7 +155,12 @@ function MessagesPageContent() {
         const data = (await res.json()) as ConversationWithLastMessage[];
         if (cancelled) return;
 
-        setConversations(data);
+        // Trier les conversations par date de dernier message (le plus récent en premier)
+        const sortedConversations = data.sort((a, b) => 
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        );
+        
+        setConversations(sortedConversations);
 
         // Synchroniser le compteur global avec la somme des compteurs locaux
         const totalUnread = data.reduce((sum, conv) => sum + conv.unreadCount, 0);
@@ -190,6 +200,23 @@ function MessagesPageContent() {
     }
   }, [conversationIdFromUrl, conversations]);
 
+  // Rejoindre toutes les conversations pour recevoir les notifications en temps réel
+  useEffect(() => {
+    if (!isConnected || conversations.length === 0) return;
+
+    // Rejoindre toutes les conversations
+    conversations.forEach((conversation) => {
+      joinConversation(conversation.id);
+    });
+
+    // Cleanup: quitter toutes les conversations
+    return () => {
+      conversations.forEach((conversation) => {
+        leaveConversation(conversation.id);
+      });
+    };
+  }, [conversations, isConnected, joinConversation, leaveConversation]);
+
   // Charger les messages d'une conversation
   useEffect(() => {
     if (!selectedConversationId) {
@@ -227,11 +254,8 @@ function MessagesPageContent() {
 
         setMessages(data);
 
-        // Joindre la conversation WebSocket
+        // Marquer les messages comme lus
         if (selectedConversationId) {
-          joinConversation(selectedConversationId);
-
-          // Marquer les messages comme lus
           markAsRead(selectedConversationId);
         }
 
@@ -261,11 +285,8 @@ function MessagesPageContent() {
 
     return () => {
       cancelled = true;
-      if (selectedConversationId) {
-        leaveConversation(selectedConversationId);
-      }
     };
-  }, [apiBaseUrl, selectedConversationId, joinConversation, leaveConversation, markAsRead]);
+  }, [apiBaseUrl, selectedConversationId, markAsRead]);
 
   const handleSendMessage = (content: string) => {
     if (!selectedConversationId || !isConnected) return;
