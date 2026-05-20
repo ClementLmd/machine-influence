@@ -131,3 +131,27 @@
     @apply cursor-not-allowed;
   }
 }
+
+@keyframes typing-dot {
+  0%, 60%, 100% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+
+@layer utilities {
+  .animate-typing-dot {
+    animation: typing-dot 1.4s infinite;
+  }
+  .animation-delay-0 {
+    animation-delay: 0s;
+  }
+  .animation-delay-200 {
+    animation-delay: 0.2s;
+  }
+  .animation-delay-400 {
+    animation-delay: 0.4s;
+  }
+}

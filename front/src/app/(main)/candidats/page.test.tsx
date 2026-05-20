@@ -1,7 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import CandidatesPage from "./page";
+import { CandidatesPageContent } from "./CandidatesPageContent";
 
 const navigationMock = vi.hoisted(() => ({
   push: vi.fn(),
@@ -28,7 +28,7 @@ const candidate = {
   createdAt: "2024-01-15T00:00:00.000Z",
 };
 
-describe("CandidatesPage", () => {
+describe("CandidatesPageContent", () => {
   beforeEach(() => {
     vi.stubEnv("NEXT_PUBLIC_API_URL", "https://api.test/");
     fetchMock.mockReset();
@@ -53,25 +53,20 @@ describe("CandidatesPage", () => {
       }),
     });
 
-    render(
-      await CandidatesPage({
-        searchParams: Promise.resolve({
-          search: "Alice",
-          skills: "React",
-          minRate: "300",
-          maxRate: "700",
-          page: "1",
-        }),
-      }),
-    );
+    navigationMock.searchParams =
+      "search=Alice&skills=React&minRate=300&maxRate=700&page=1";
+
+    render(<CandidatesPageContent />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Alice Martin")).toBeInTheDocument();
+    });
 
     expect(fetchMock).toHaveBeenCalledWith(
       "https://api.test/users?page=1&limit=12&search=Alice&skills=React&minRate=300&maxRate=700",
-      { cache: "no-store" },
     );
     expect(screen.getByRole("heading", { name: "Talents" })).toBeInTheDocument();
     expect(screen.getByText("13 profils trouvés")).toBeInTheDocument();
-    expect(screen.getByText("Alice Martin")).toBeInTheDocument();
     expect(screen.getByText("450 €/jour")).toBeInTheDocument();
     expect(screen.getByText("+1")).toBeInTheDocument();
 
@@ -91,16 +86,14 @@ describe("CandidatesPage", () => {
       json: async () => ({ users: [], total: 0, page: 1, limit: 12 }),
     });
 
-    render(
-      await CandidatesPage({
-        searchParams: Promise.resolve({
-          search: "Designer",
-          skills: "Figma",
-        }),
-      }),
-    );
+    navigationMock.searchParams = "search=Designer&skills=Figma";
 
-    expect(screen.getByText("Aucun profil trouvé")).toBeInTheDocument();
+    render(<CandidatesPageContent />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Aucun profil trouvé")).toBeInTheDocument();
+    });
+
     expect(
       screen.getByText(
         "Aucun profil ne correspond à ces critères. Essayez d'ajuster les filtres.",
@@ -108,28 +101,29 @@ describe("CandidatesPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("returns an empty state without calling fetch when the API URL is missing", async () => {
+  it("returns an unconfigured state without calling fetch when the API URL is missing", async () => {
     vi.stubEnv("NEXT_PUBLIC_API_URL", "");
 
-    render(
-      await CandidatesPage({
-        searchParams: Promise.resolve({}),
-      }),
-    );
+    render(<CandidatesPageContent />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Configuration API manquante/i),
+      ).toBeInTheDocument();
+    });
 
     expect(fetchMock).not.toHaveBeenCalled();
-    expect(screen.getByText("Aucun talent disponible pour le moment.")).toBeInTheDocument();
   });
 
-  it("falls back to an empty state when the API response fails", async () => {
-    fetchMock.mockResolvedValueOnce({ ok: false });
+  it("shows an error state when the API response fails", async () => {
+    fetchMock.mockResolvedValueOnce({ ok: false, status: 500 });
 
-    render(
-      await CandidatesPage({
-        searchParams: Promise.resolve({}),
-      }),
-    );
+    render(<CandidatesPageContent />);
 
-    expect(screen.getByText("Aucun talent disponible pour le moment.")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Impossible de charger les données/i),
+      ).toBeInTheDocument();
+    });
   });
 });

@@ -1,14 +1,21 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { ExternalLink, FileText } from "lucide-react";
 
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
-import { getApiBaseUrl } from "@/lib/api";
+import { ApiLoadState } from "@/components/ui/ApiLoadState";
+import { ContactButton } from "@/components/messages/ContactButton";
+import { fetchFromApi, type ApiLoadStatus } from "@/lib/api-fetch";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 type PublicUser = {
   id: string;
-  role: 'RECRUITER' | 'CANDIDATE';
+  role: "RECRUITER" | "CANDIDATE";
   firstName: string | null;
   lastName: string | null;
   profilePicture: string | null;
@@ -21,22 +28,14 @@ type PublicUser = {
   createdAt: string;
 };
 
-async function getCandidate(id: string): Promise<PublicUser | null> {
-  const apiBaseUrl = getApiBaseUrl();
-  if (!apiBaseUrl) return null;
-
-  const res = await fetch(`${apiBaseUrl}/users/${id}`, { cache: "no-store" });
-  if (!res.ok) return null;
-  return (await res.json()) as PublicUser;
-}
-
 const ROLE_LABELS: Record<PublicUser["role"], string> = {
   CANDIDATE: "Candidat",
   RECRUITER: "Recruteur",
 };
 
 const ROLE_CLASSES: Record<PublicUser["role"], string> = {
-  CANDIDATE: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  CANDIDATE:
+    "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
   RECRUITER:
     "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
 };
@@ -46,15 +45,75 @@ function formatMemberSince(dateStr: string) {
   return date.toLocaleDateString("fr-FR", { year: "numeric", month: "long" });
 }
 
-export default async function CandidatePublicPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const candidate = await getCandidate(id);
+function ProfileSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-6">
+        <div className="size-16 animate-pulse rounded-full bg-muted" />
+        <div className="flex-1 space-y-3">
+          <div className="h-6 w-1/2 animate-pulse rounded bg-muted" />
+          <div className="h-4 w-1/3 animate-pulse rounded bg-muted" />
+        </div>
+      </div>
+      <div className="h-32 animate-pulse rounded-xl border border-border bg-card" />
+      <div className="h-24 animate-pulse rounded-xl border border-border bg-card" />
+    </div>
+  );
+}
 
-  if (!candidate) {
+export default function CandidatePublicPage() {
+  const params = useParams<{ id: string }>();
+  const id = params.id;
+  const { currentUser } = useCurrentUser();
+  const [candidate, setCandidate] = useState<PublicUser | null>(null);
+  const [status, setStatus] = useState<ApiLoadStatus | "not-found">("loading");
+  const [retryCount, setRetryCount] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      setStatus("loading");
+      if (!id) {
+        setStatus("not-found");
+        return;
+      }
+
+      const result = await fetchFromApi<PublicUser>(`/users/${id}`);
+      if (cancelled) return;
+
+      if (result.status === "success") {
+        setCandidate(result.data);
+        setStatus("success");
+        return;
+      }
+
+      setCandidate(null);
+      setStatus(result.status);
+    }
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [id, retryCount]);
+
+  if (status === "loading") {
+    return (
+      <div className="mx-auto w-full max-w-3xl px-4 py-10">
+        <Link
+          href="/candidats"
+          className="mb-6 inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+        >
+          ← Retour aux talents
+        </Link>
+        <ApiLoadState status="loading" className="mb-6" />
+        <ProfileSkeleton />
+      </div>
+    );
+  }
+
+  if (status === "not-found") {
     return (
       <div className="mx-auto w-full max-w-3xl px-4 py-10">
         <Card>
@@ -76,6 +135,31 @@ export default async function CandidatePublicPage({
         </Card>
       </div>
     );
+  }
+
+  if (status === "error" || status === "unconfigured") {
+    return (
+      <div className="mx-auto w-full max-w-3xl px-4 py-10">
+        <Link
+          href="/candidats"
+          className="mb-6 inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+        >
+          ← Retour aux talents
+        </Link>
+        <Card>
+          <CardContent className="p-8">
+            <ApiLoadState
+              status={status}
+              onRetry={() => setRetryCount((n) => n + 1)}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!candidate) {
+    return null;
   }
 
   const name =
@@ -129,11 +213,12 @@ export default async function CandidatePublicPage({
           </div>
 
           <div className="mt-4">
-            <Button asChild>
-              <Link href={`/discussion?userId=${candidate.id}`}>
-                Contacter
-              </Link>
-            </Button>
+            {currentUser && currentUser.id !== candidate.id && (
+              <ContactButton
+                recipientId={candidate.id}
+                recipientName={candidate.firstName || undefined}
+              />
+            )}
           </div>
         </div>
       </div>

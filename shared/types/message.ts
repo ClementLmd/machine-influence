@@ -1,8 +1,13 @@
+import type { UserBasic } from './user';
+
 export interface Message {
   id: string;
   conversationId: string;
   senderId: string;
   content: string;
-  readAt: string | null;
   createdAt: string;
+}
+
+export interface MessageWithSender extends Message {
+  sender: UserBasic;
 }
