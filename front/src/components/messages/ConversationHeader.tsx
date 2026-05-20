@@ -44,7 +44,7 @@ export function ConversationHeader({
         </p>
         {isTyping && (
           <p className="text-sm text-neutral-600 dark:text-neutral-400">
-            En train d'écrire...
+            En train d&apos;écrire...
           </p>
         )}
       </div>
