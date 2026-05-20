@@ -9,7 +9,9 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { ApiLoadState } from "@/components/ui/ApiLoadState";
+import { ContactButton } from "@/components/messages/ContactButton";
 import { fetchFromApi, type ApiLoadStatus } from "@/lib/api-fetch";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 type PublicUser = {
   id: string;
@@ -62,6 +64,7 @@ function ProfileSkeleton() {
 export default function CandidatePublicPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
+  const { currentUser } = useCurrentUser();
   const [candidate, setCandidate] = useState<PublicUser | null>(null);
   const [status, setStatus] = useState<ApiLoadStatus | "not-found">("loading");
   const [retryCount, setRetryCount] = useState(0);
@@ -210,11 +213,12 @@ export default function CandidatePublicPage() {
           </div>
 
           <div className="mt-4">
-            <Button asChild>
-              <Link href={`/discussion?userId=${candidate.id}`}>
-                Contacter
-              </Link>
-            </Button>
+            {currentUser && currentUser.id !== candidate.id && (
+              <ContactButton
+                recipientId={candidate.id}
+                recipientName={candidate.firstName || undefined}
+              />
+            )}
           </div>
         </div>
       </div>

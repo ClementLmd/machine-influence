@@ -32,3 +32,12 @@ export interface UserPublic {
   isProfileComplete: boolean;
   createdAt: string;
 }
+
+export interface UserBasic {
+  id: string;
+  email: string;
+  role: UserRole;
+  firstName: string | null;
+  lastName: string | null;
+  profilePicture: string | null;
+}
