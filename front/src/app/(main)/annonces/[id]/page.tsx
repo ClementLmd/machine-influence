@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { ApiLoadState } from "@/components/ui/ApiLoadState";
+import { ContactButton } from "@/components/messages/ContactButton";
 import { calculateDuration } from "@/lib/utils";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { fetchFromApi, type ApiLoadStatus } from "@/lib/api-fetch";
@@ -113,6 +114,7 @@ export default function AnnouncementDetailPage() {
             announcement.endDate,
           );
 
+<<<<<<< HEAD
           return (
             <Card>
               <CardHeader>
@@ -261,6 +263,17 @@ export default function AnnouncementDetailPage() {
                       </CardContent>
                     </Card>
                   </Link>
+                  
+                  {!isOwner && currentUser && (
+                    <div className="mt-4">
+                      <ContactButton
+                        recipientId={announcement.recruiterId}
+                        recipientName={announcement.recruiter.firstName || 'le recruteur'}
+                        variant="outline"
+                        className="w-full"
+                      />
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

@@ -7,22 +7,24 @@ datasource db {
 }
 
 model User {
-  id                String        @id @default(uuid())
-  supabaseId        String        @unique
-  email             String        @unique
-  role              UserRole
-  firstName         String?
-  lastName          String?
-  profilePicture    String?
-  description       String?
-  skills            String[]
-  rate              Float?
-  cvUrl             String?
-  portfolioUrl      String?
-  isProfileComplete Boolean       @default(false)
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  announcements     Announcement[]
+  id                     String                    @id @default(uuid())
+  supabaseId             String                    @unique
+  email                  String                    @unique
+  role                   UserRole
+  firstName              String?
+  lastName               String?
+  profilePicture         String?
+  description            String?
+  skills                 String[]
+  rate                   Float?
+  cvUrl                  String?
+  portfolioUrl           String?
+  isProfileComplete      Boolean                   @default(false)
+  createdAt              DateTime                  @default(now())
+  updatedAt              DateTime                  @updatedAt
+  announcements          Announcement[]
+  conversationParticipants ConversationParticipant[]
+  sentMessages           Message[]
 }
 
 model Announcement {
@@ -40,6 +42,46 @@ model Announcement {
   updatedAt      DateTime @updatedAt
 
   @@index([recruiterId])
+  @@index([createdAt])
+}
+
+model Conversation {
+  id           String                    @id @default(uuid())
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@index([createdAt])
+}
+
+model ConversationParticipant {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastReadAt     DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@index([conversationId])
+}
+
+model Message {
+  id               String       @id @default(uuid())
+  conversationId   String
+  conversation     Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId         String
+  sender           User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  encryptedContent String       @db.Text
+  iv               String
+  authTag          String
+  createdAt        DateTime     @default(now())
+
+  @@index([conversationId])
+  @@index([senderId])
   @@index([createdAt])
 }
 
