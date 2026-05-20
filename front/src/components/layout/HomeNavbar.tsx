@@ -3,14 +3,17 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { Clapperboard, LogOut, Menu, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Clapperboard, LogOut, Menu, MessageCircle, X } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { useUnreadCount } from "@/contexts/UnreadCountContext";
 import type { User } from "@supabase/supabase-js";
 
 export function HomeNavbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const { unreadCount } = useUnreadCount();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -74,6 +77,20 @@ export function HomeNavbar() {
           >
             Talents
           </Link>
+          {user && (
+            <Link
+              href="/messages"
+              className="relative text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+            >
+              <MessageCircle className="size-4" />
+              Messages
+              {unreadCount > 0 && (
+                <Badge className="ml-1 bg-red-600 text-white px-1.5 py-0 text-xs min-w-[1.25rem] h-5">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Badge>
+              )}
+            </Link>
+          )}
         </div>
 
         <div className="hidden md:flex items-center gap-3">
@@ -129,6 +146,21 @@ export function HomeNavbar() {
             >
               Comment ça marche
             </Link>
+            {user && (
+              <Link
+                href="/messages"
+                className="relative text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <MessageCircle className="size-4" />
+                Messages
+                {unreadCount > 0 && (
+                  <Badge className="bg-red-600 text-white px-1.5 py-0 text-xs min-w-[1.25rem] h-5">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Badge>
+                )}
+              </Link>
+            )}
             <Link
               href="/annonces"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
