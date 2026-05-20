@@ -16,7 +16,7 @@ interface UseWebSocketReturn {
 
 interface UseWebSocketCallbacks {
   onMessageSent?: (message: MessageWithSender) => void;
-  onUserTyping?: (data: { userId: string; isTyping: boolean }) => void;
+  onUserTyping?: (data: { conversationId: string; userId: string; isTyping: boolean }) => void;
   onMessagesRead?: (data: { conversationId: string; userId: string }) => void;
 }
 
@@ -73,7 +73,7 @@ export function useWebSocket(callbacks?: UseWebSocketCallbacks): UseWebSocketRet
           callbacksRef.current?.onMessageSent?.(message);
         });
 
-        socketInstance.on('user-typing', (data: { userId: string; isTyping: boolean }) => {
+        socketInstance.on('user-typing', (data: { conversationId: string; userId: string; isTyping: boolean }) => {
           callbacksRef.current?.onUserTyping?.(data);
         });
 

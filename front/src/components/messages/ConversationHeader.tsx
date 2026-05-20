@@ -5,20 +5,16 @@ import type { UserBasic } from '@machine-influence/shared/types';
 interface ConversationHeaderProps {
   otherParticipant: UserBasic;
   onBack?: () => void;
-  typingUserId?: string | null;
 }
 
 export function ConversationHeader({
   otherParticipant,
   onBack,
-  typingUserId,
 }: ConversationHeaderProps) {
   const displayName =
     otherParticipant.firstName && otherParticipant.lastName
       ? `${otherParticipant.firstName} ${otherParticipant.lastName}`
       : otherParticipant.email;
-
-  const isTyping = typingUserId === otherParticipant.id;
 
   return (
     <div className="flex items-center gap-3 border-b border-neutral-200 bg-white px-4 py-3 dark:border-neutral-800 dark:bg-neutral-950">
@@ -42,11 +38,6 @@ export function ConversationHeader({
         <p className="truncate font-medium text-neutral-900 dark:text-white">
           {displayName}
         </p>
-        {isTyping && (
-          <p className="text-sm text-neutral-600 dark:text-neutral-400">
-            En train d&apos;écrire...
-          </p>
-        )}
       </div>
     </div>
   );

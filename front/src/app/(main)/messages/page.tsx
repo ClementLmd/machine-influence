@@ -65,6 +65,9 @@ function MessagesPageContent() {
         });
       },
       onUserTyping: (data) => {
+        // Ne mettre à jour l'indicateur que si c'est pour la conversation active
+        if (data.conversationId !== selectedConversationId) return;
+        
         if (data.isTyping) {
           setTypingUserId(data.userId);
         } else {
@@ -359,7 +362,6 @@ function MessagesPageContent() {
             <ConversationHeader
               otherParticipant={selectedConversation.otherParticipant}
               onBack={handleBackToList}
-              typingUserId={typingUserId}
             />
             {messagesLoading ? (
               <div className="flex flex-1 items-center justify-center">
@@ -368,7 +370,12 @@ function MessagesPageContent() {
                 </p>
               </div>
             ) : (
-              <MessageThread messages={messages} currentUserId={currentUserId} />
+              <MessageThread 
+                messages={messages} 
+                currentUserId={currentUserId}
+                typingUserId={typingUserId}
+                otherParticipant={selectedConversation.otherParticipant}
+              />
             )}
             <MessageInput
               onSend={handleSendMessage}
