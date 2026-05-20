@@ -123,11 +123,8 @@ describe("CandidatePublicPage", () => {
     });
 
     expect(fetchMock).not.toHaveBeenCalled();
-<<<<<<< HEAD
-=======
     expect(
       screen.getByRole("heading", { name: "Candidat introuvable" }),
     ).toBeInTheDocument();
->>>>>>> c53700d (fix: fix tests)
   });
 });
