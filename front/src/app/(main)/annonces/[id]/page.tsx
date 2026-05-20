@@ -114,7 +114,6 @@ export default function AnnouncementDetailPage() {
             announcement.endDate,
           );
 
-<<<<<<< HEAD
           return (
             <Card>
               <CardHeader>
