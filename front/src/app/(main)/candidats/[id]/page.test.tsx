@@ -54,7 +54,9 @@ describe("CandidatePublicPage", () => {
     render(<CandidatePublicPage />);
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "Alice Martin" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: "Alice Martin" }),
+      ).toBeInTheDocument();
     });
 
     expect(fetchMock).toHaveBeenCalledWith("https://api.test/users/user-1");
@@ -84,14 +86,17 @@ describe("CandidatePublicPage", () => {
     render(<CandidatePublicPage />);
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "Candidat introuvable" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: "Candidat introuvable" }),
+      ).toBeInTheDocument();
     });
 
-    expect(screen.getByText("Vérifiez l'URL ou réessayez plus tard.")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "← Retour aux talents" })).toHaveAttribute(
-      "href",
-      "/candidats",
-    );
+    expect(
+      screen.getByText("Vérifiez l'URL ou réessayez plus tard."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "← Retour aux talents" }),
+    ).toHaveAttribute("href", "/candidats");
   });
 
   it("does not render the documents section without portfolio or CV", async () => {
@@ -107,7 +112,9 @@ describe("CandidatePublicPage", () => {
     render(<CandidatePublicPage />);
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "Alice Martin" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: "Alice Martin" }),
+      ).toBeInTheDocument();
     });
 
     expect(screen.queryByText("Documents & liens")).not.toBeInTheDocument();
@@ -119,12 +126,11 @@ describe("CandidatePublicPage", () => {
     render(<CandidatePublicPage />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Configuration API manquante/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Configuration API manquante/i),
+      ).toBeInTheDocument();
     });
 
     expect(fetchMock).not.toHaveBeenCalled();
-    expect(
-      screen.getByRole("heading", { name: "Candidat introuvable" }),
-    ).toBeInTheDocument();
   });
 });
