@@ -170,7 +170,7 @@ function MessagesPageContent() {
     return () => {
       cancelled = true;
     };
-  }, [apiBaseUrl, currentUserId]);
+  }, [apiBaseUrl, currentUserId, setUnreadCount]);
 
   // Synchroniser le compteur global avec la somme des compteurs locaux des conversations
   useEffect(() => {
