@@ -1,10 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { Avatar } from '@/components/ui/Avatar';
-import type { MessageWithSender } from '@machine-influence/shared/types';
+import type { MessageWithSender, UserBasic } from '@machine-influence/shared/types';
 
 interface MessageThreadProps {
   messages: MessageWithSender[];
   currentUserId: string;
+  typingUserId?: string | null;
+  otherParticipant?: UserBasic;
 }
 
 function formatTime(dateString: string): string {
@@ -48,10 +50,15 @@ function shouldShowDateSeparator(
   return currentDate !== previousDate;
 }
 
-export function MessageThread({ messages, currentUserId }: MessageThreadProps) {
+export function MessageThread({ messages, currentUserId, typingUserId, otherParticipant }: MessageThreadProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const previousMessagesLengthRef = useRef(messages.length);
   const isInitialLoadRef = useRef(true);
+  
+  const isTyping = typingUserId && otherParticipant && typingUserId === otherParticipant.id;
+  const typingDisplayName = otherParticipant?.firstName && otherParticipant?.lastName
+    ? `${otherParticipant.firstName} ${otherParticipant.lastName}`
+    : otherParticipant?.email || '';
 
   useEffect(() => {
     // Réinitialiser le flag si les messages sont vidés (changement de conversation)
@@ -78,6 +85,13 @@ export function MessageThread({ messages, currentUserId }: MessageThreadProps) {
     }
     previousMessagesLengthRef.current = messages.length;
   }, [messages, currentUserId]);
+
+  // Scroller quand l'indicateur de typing apparaît
+  useEffect(() => {
+    if (isTyping) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }, [isTyping]);
 
   if (messages.length === 0) {
     return (
@@ -162,6 +176,14 @@ export function MessageThread({ messages, currentUserId }: MessageThreadProps) {
           </div>
         );
       })}
+      {isTyping && (
+        <div className="mb-2 px-2">
+          <p className="text-sm italic text-neutral-500 dark:text-neutral-400">
+            {typingDisplayName} est en train d&apos;écrire...
+          </p>
+        </div>
+      )}
+      <div ref={messagesEndRef} />
     </div>
   );
 }

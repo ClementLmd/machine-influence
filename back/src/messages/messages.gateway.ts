@@ -185,6 +185,7 @@ export class MessagesGateway
 
     // Broadcast l'indicateur de typing aux autres participants
     client.to(`conversation-${data.conversationId}`).emit('user-typing', {
+      conversationId: data.conversationId,
       userId: client.userId,
       isTyping: data.isTyping,
     });
